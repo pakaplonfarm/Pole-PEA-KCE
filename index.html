@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>PEA คลังเสา | คำชะอี</title>
+
+<!-- PWA -->
+<meta name="theme-color" content="#0A0A12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="คลังเสา PEA">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237B5BE0'/%3E%3Cstop offset='0.5' stop-color='%239B7BF5'/%3E%3Cstop offset='1' stop-color='%23C66FD8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='180' height='180' rx='40' fill='url(%23g)'/%3E%3Ctext x='90' y='118' font-family='Arial,sans-serif' font-size='62' font-weight='800' fill='white' text-anchor='middle' letter-spacing='2'%3EPEA%3C/text%3E%3C/svg%3E">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+:root{
+  /* พื้นมืด หรูหรา ตัวหนังสือเด่น */
+  --bg:#0A0A12;--bg1:#14141F;--bg2:#1B1B28;--bg3:#252533;--bg4:#30303F;
+  --ln:rgba(255,255,255,.07);--ln2:rgba(255,255,255,.13);
+  --tx:#F5F5FB;--tx2:#A0A0B8;--tx3:#62627A;--red:#FF3B6B;
+  /* accent ม่วง-คราม หรูหรา (PEA) */
+  --pp:#9B7BF5;--ppd:rgba(155,123,245,.13);
+  --gn:#00E5A0;--gd:rgba(0,229,160,.11);
+  --or:#FFB340;--od:rgba(255,179,64,.12);
+  --bl:#5E9BFF;--bd:rgba(94,155,255,.11);
+  --r1:#FF5C8A;--rd:rgba(255,92,138,.11);
+  --te:#33E5D5;--td:rgba(51,229,213,.11);
+  --g1:linear-gradient(135deg,#9B7BF5,#B794FF);
+  --g2:linear-gradient(135deg,#00E5A0,#33E5D5);
+  --g3:linear-gradient(135deg,#9B7BF5,#C66FD8);
+  --g-purple:linear-gradient(135deg,#7B5BE0 0%,#9B7BF5 50%,#C66FD8 100%);
+  --rad:16px;--rad2:11px;
+  --shd:0 4px 28px rgba(0,0,0,.55);--shd2:0 16px 52px rgba(0,0,0,.7);
+  --shd-sm:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.2);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'IBM Plex Sans Thai',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum";
+  background-image:radial-gradient(ellipse 1000px 500px at 85% -15%,rgba(155,123,245,.08),transparent),radial-gradient(ellipse 700px 400px at 0% 105%,rgba(198,111,216,.05),transparent);}
+
+/* ── SETUP SCREEN ── */
+.setup-wrap{display:none;min-height:100vh;align-items:center;justify-content:center;padding:24px;}
+.setup-wrap.show{display:flex;}
+.setup-card{background:var(--bg1);border:1px solid var(--ln2);border-radius:16px;max-width:560px;width:100%;padding:28px;box-shadow:var(--shd2);}
+.setup-logo{width:44px;height:44px;background:var(--g3);border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;margin-bottom:16px;}
+.setup-title{font-size:18px;font-weight:700;margin-bottom:6px;}
+.setup-sub{font-size:12.5px;color:var(--tx2);margin-bottom:20px;line-height:1.6;}
+.setup-field{margin-bottom:12px;}
+.setup-label{font-size:10.5px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:block;}
+.setup-input{width:100%;background:var(--bg2);border:1px solid var(--ln2);border-radius:8px;color:var(--tx);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:10px 12px;outline:none;}
+.setup-input:focus{border-color:var(--bl);}
+.setup-help{background:var(--bd);border:1px solid rgba(94,155,255,.25);border-radius:10px;padding:13px;font-size:12px;color:var(--bl);margin-bottom:16px;line-height:1.7;}
+.setup-help b{color:#fff;}
+.setup-help a{color:var(--bl);text-decoration:underline;}
+.setup-btn{width:100%;padding:12px;background:var(--g3);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;}
+.setup-btn:hover{box-shadow:0 4px 20px rgba(255,45,85,.4);}
+.setup-err{color:var(--r1);font-size:12px;margin-top:8px;padding:8px 12px;background:var(--rd);border-radius:8px;display:none;}
+.setup-err.show{display:block;}
+.toggle-help{font-size:11.5px;color:var(--bl);cursor:pointer;text-decoration:underline;margin-bottom:14px;display:inline-block;}
+
+/* ── APP (hidden until configured) ── */
+#app{display:block;}
+
+/* TOPBAR */
+.top{background:rgba(10,10,18,.85);backdrop-filter:blur(24px);border-bottom:1px solid var(--ln);height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:100;}
+.tb-brand{display:flex;align-items:center;gap:10px;}
+.pea-logo{width:34px;height:34px;background:var(--g-purple);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;box-shadow:0 4px 14px rgba(109,91,214,.4);flex-shrink:0;letter-spacing:.5px;}
+.top-title{font-size:13px;font-weight:700;letter-spacing:-.2px;}
+.top-sub{font-size:9.5px;color:var(--tx3);}
+.top-right{display:flex;align-items:center;gap:5px;}
+.live{display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;border:1px solid rgba(0,184,132,.25);background:var(--gd);font-size:10px;font-weight:600;color:var(--gn);}
+.live-dot{width:5px;height:5px;background:var(--gn);border-radius:50%;animation:blink 2s ease infinite;box-shadow:0 0 6px var(--gn);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.sy-ok{display:flex;align-items:center;gap:4px;padding:4px 11px;border-radius:20px;border:1px solid rgba(109,91,214,.25);background:var(--ppd);font-size:10px;font-weight:600;color:var(--pp);}
+.sy-sv{display:flex;align-items:center;gap:4px;padding:4px 11px;border-radius:20px;border:1px solid rgba(245,147,49,.3);background:var(--od);font-size:10px;font-weight:600;color:var(--or);}
+.sy-er{display:flex;align-items:center;gap:4px;padding:4px 11px;border-radius:20px;border:1px solid rgba(229,41,90,.3);background:var(--rd);font-size:10px;font-weight:600;color:var(--r1);}
+.sy-cn{display:flex;align-items:center;gap:4px;padding:4px 11px;border-radius:20px;border:1px solid rgba(245,147,49,.3);background:var(--od);font-size:10px;font-weight:600;color:var(--or);}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 54px);}
+.sidebar{width:200px;flex-shrink:0;background:var(--bg1);border-right:1px solid var(--ln);padding:12px 9px;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;display:flex;flex-direction:column;gap:2px;}
+.sl-lbl{font-size:9px;font-weight:700;color:var(--tx3);letter-spacing:1.2px;text-transform:uppercase;padding:12px 9px 4px;}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:var(--rad2);cursor:pointer;color:var(--tx2);font-size:13px;transition:all .15s;user-select:none;font-weight:500;}
+.ni:hover{background:var(--bg3);color:var(--tx);}
+.ni.act{background:var(--ppd);color:var(--pp);font-weight:600;box-shadow:inset 2.5px 0 0 var(--pp);}
+.main{flex:1;padding:24px;overflow:auto;}
+.vw{animation:fu .22s ease;}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;gap:10px;flex-wrap:wrap;}
+.pt{font-size:21px;font-weight:700;letter-spacing:-.4px;}
+.ps{font-size:12px;color:var(--tx2);margin-top:3px;}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:13px;margin-bottom:26px;}
+.kc{background:linear-gradient(160deg,var(--bg2),var(--bg1));border:1px solid var(--ln);border-radius:var(--rad);padding:18px;cursor:pointer;position:relative;overflow:hidden;transition:all .25s cubic-bezier(.2,.8,.3,1);box-shadow:var(--shd-sm);}
+.kc::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;opacity:0;transition:opacity .2s;}
+.kc:hover{transform:translateY(-4px);box-shadow:var(--shd);}.kc:hover::after{opacity:1;}
+.kg::after{background:var(--g2);}.kg:hover{border-color:rgba(0,229,160,.35);}
+.ko::after{background:linear-gradient(90deg,var(--or),#FFD98A);}.ko:hover{border-color:rgba(255,179,64,.35);}
+.kb::after{background:var(--g1);}.kb:hover{border-color:rgba(155,123,245,.4);}
+.kr::after{background:var(--g3);}.kr:hover{border-color:rgba(198,111,216,.4);}
+.kt::after{background:linear-gradient(90deg,var(--te),#7FF0E6);}.kt:hover{border-color:rgba(51,229,213,.35);}
+.kc-lbl{font-size:11px;color:var(--tx2);font-weight:600;margin-bottom:8px;}
+.kc-val{font-size:32px;font-weight:700;font-family:'IBM Plex Mono',monospace;line-height:1;letter-spacing:-1.5px;}
+.kg .kc-val{color:var(--gn);text-shadow:0 0 24px rgba(0,229,160,.35);}
+.ko .kc-val{color:var(--or);text-shadow:0 0 24px rgba(255,179,64,.35);}
+.kb .kc-val{color:var(--pp);text-shadow:0 0 24px rgba(155,123,245,.4);}
+.kr .kc-val{color:#D98AE0;text-shadow:0 0 24px rgba(198,111,216,.35);}
+.kt .kc-val{color:var(--te);text-shadow:0 0 24px rgba(51,229,213,.35);}
+.kc-sub{font-size:10.5px;color:var(--tx3);margin-top:6px;}
+.sl2{font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--ln);}
+
+/* STOCK */
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px;margin-bottom:26px;}
+.sc{background:linear-gradient(160deg,var(--bg2),var(--bg1));border:1px solid var(--ln);border-radius:var(--rad);overflow:hidden;cursor:pointer;transition:all .25s cubic-bezier(.2,.8,.3,1);box-shadow:var(--shd-sm);}
+.sc:hover{border-color:rgba(155,123,245,.4);transform:translateY(-4px);box-shadow:var(--shd);}
+.sc-top{padding:14px 16px 11px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--ln);}
+.psz{font-size:15px;font-weight:700;font-family:'IBM Plex Mono',monospace;background:var(--g1);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.pcd{font-size:9.5px;color:var(--tx3);font-family:'IBM Plex Mono',monospace;margin-top:3px;}
+.stk-pill{font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;background:var(--gd);color:var(--gn);border:1px solid rgba(0,184,132,.25);font-family:'IBM Plex Mono',monospace;}
+.sc-body{padding:13px 16px;}
+.sr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.slb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx2);}
+.dot-g{width:6px;height:6px;background:var(--gn);border-radius:50%;flex-shrink:0;}
+.dot-o{width:6px;height:6px;background:var(--or);border-radius:50%;flex-shrink:0;}
+.dot-t{width:6px;height:6px;background:var(--te);border-radius:50%;flex-shrink:0;}
+.sn{font-size:16px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+.sng{color:var(--gn);}.sno{color:var(--or);}.snb{color:var(--pp);font-size:18px;}.snt{color:var(--te);}
+.sp{height:1px;background:var(--ln);margin:9px 0;}
+.mbar{height:4px;background:var(--bg3);border-radius:3px;margin-top:8px;display:flex;overflow:hidden;}
+.bg2{background:var(--gn);height:100%;transition:width .5s;}.bo2{background:var(--or);height:100%;transition:width .5s;}
+
+/* ANCHOR */
+.ac-card{background:linear-gradient(160deg,rgba(51,229,213,.08),var(--bg1));border:1px solid rgba(51,229,213,.22);border-radius:var(--rad);overflow:hidden;cursor:pointer;transition:all .25s;max-width:330px;box-shadow:var(--shd-sm);}
+.ac-card:hover{border-color:rgba(51,229,213,.45);transform:translateY(-4px);box-shadow:0 8px 28px rgba(51,229,213,.12);}
+.ac-top{padding:14px 16px 11px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(17,181,196,.15);}
+.ac-name{font-size:15px;font-weight:700;color:var(--te);}
+.ac-code{font-size:9.5px;color:rgba(17,181,196,.65);font-family:'IBM Plex Mono',monospace;margin-top:3px;}
+.ac-pill{font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;background:var(--td);color:var(--te);border:1px solid rgba(17,181,196,.3);font-family:'IBM Plex Mono',monospace;}
+
+/* SEARCH */
+.gs-wrap{position:relative;margin-bottom:9px;}
+.gs-inp{width:100%;padding:14px 48px 14px 48px;background:var(--bg1);border:1.5px solid var(--ln2);border-radius:var(--rad);color:var(--tx);font-family:'IBM Plex Sans Thai',sans-serif;font-size:14.5px;outline:none;transition:all .18s;box-shadow:var(--shd-sm);}
+.gs-inp:focus{border-color:var(--pp);box-shadow:0 0 0 4px rgba(109,91,214,.1);}
+.gs-inp::placeholder{color:var(--tx3);}
+.gs-ico{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--tx3);pointer-events:none;}
+.gs-clr{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--bg3);border:none;color:var(--tx2);cursor:pointer;border-radius:6px;padding:3px 9px;font-size:11px;}
+.gs-clr:hover{background:var(--rd);color:var(--r1);}
+.gs-hints{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+.gh{font-size:11px;color:var(--tx3);}
+.gs-results{background:var(--bg1);border:1px solid var(--ln2);border-radius:var(--rad);overflow:hidden;box-shadow:var(--shd);margin-bottom:18px;}
+.gsr-hdr{padding:8px 16px;background:var(--bg3);font-size:9.5px;font-weight:700;color:var(--tx3);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--ln);}
+.gsr-item{padding:12px 16px;border-bottom:1px solid var(--ln);cursor:pointer;display:flex;align-items:flex-start;gap:12px;}
+.gsr-item:last-child{border-bottom:none;}.gsr-item:hover{background:var(--ppd);}
+.gsr-icon{width:34px;height:34px;border-radius:var(--rad2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:1px;}
+.gsr-main{flex:1;min-width:0;}
+.gsr-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.gsr-sub{font-size:11px;color:var(--tx2);margin-top:3px;line-height:1.5;}
+.gsr-empty{padding:28px;text-align:center;color:var(--tx3);font-size:13px;}
+.hl{background:rgba(109,91,214,.18);color:var(--pp);border-radius:3px;padding:0 2px;font-weight:600;}
+.bk-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+.bk-chip{font-size:10.5px;background:var(--bg3);border:1px solid var(--ln);border-radius:6px;padding:3px 8px;color:var(--tx2);}
+.bk-chip b{font-family:'IBM Plex Mono',monospace;}
+.bk-summary{background:var(--bg2);border:1px solid var(--ln);border-radius:var(--rad2);padding:13px 15px;margin-bottom:4px;}
+.bk-sum-hdr{font-size:9.5px;font-weight:700;color:var(--tx3);letter-spacing:1px;text-transform:uppercase;margin-bottom:9px;}
+.bk-line{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--ln);font-size:12.5px;flex-wrap:wrap;}
+.bk-line:last-child{border-bottom:none;}
+.bk-name{font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.bk-nums{font-size:11.5px;color:var(--tx2);}
+.bk-nums b{color:var(--pp);font-family:'IBM Plex Mono',monospace;}
+.mt-pn-toggle{color:var(--pp);font-weight:600;font-size:11.5px;white-space:nowrap;}
+.mt-pn-hdr{font-size:10.5px;color:var(--tx3);font-weight:600;}
+.mt-pn-row td{border-bottom:1px solid var(--ln);}
+
+/* BTN */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 15px;border-radius:var(--rad2);border:1px solid transparent;cursor:pointer;font-family:'IBM Plex Sans Thai',sans-serif;font-size:12.5px;font-weight:600;transition:all .18s;white-space:nowrap;user-select:none;}
+.btn:active{transform:scale(.96);}
+.btn-p{background:var(--g3);color:#fff;box-shadow:0 3px 14px rgba(109,91,214,.35);border:none;}
+.btn-p:hover{box-shadow:0 6px 22px rgba(109,91,214,.5);transform:translateY(-1px);}
+.btn-gh{background:var(--bg2);color:var(--tx2);border-color:var(--ln2);}.btn-gh:hover{background:var(--bg3);color:var(--tx);}
+.btn-gn{background:var(--gd);color:var(--gn);border-color:rgba(0,184,132,.28);}.btn-gn:hover{background:rgba(0,184,132,.16);}
+.btn-xl{background:var(--gd);color:var(--gn);border-color:rgba(0,184,132,.3);}.btn-xl:hover{background:rgba(0,184,132,.18);}
+.btn-rd{background:var(--rd);color:var(--r1);border-color:rgba(229,41,90,.25);}.btn-rd:hover{background:rgba(229,41,90,.16);}
+.btn-te{background:var(--td);color:var(--te);border-color:rgba(17,181,196,.28);}
+.btn-sm{padding:6px 12px;font-size:11.5px;}.btn-xs{padding:3px 9px;font-size:10.5px;}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* TABLE */
+.tw{background:var(--bg1);border:1px solid var(--ln);border-radius:var(--rad);overflow:hidden;box-shadow:var(--shd-sm);}
+.ttb{padding:11px 14px;border-bottom:1px solid var(--ln);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:var(--bg2);}
+.sw{display:flex;align-items:center;gap:6px;background:var(--bg1);border:1px solid var(--ln2);border-radius:var(--rad2);padding:7px 11px;min-width:180px;}
+.sw:focus-within{border-color:var(--pp);}
+.sw input{background:none;border:none;color:var(--tx);font-family:'IBM Plex Sans Thai',sans-serif;font-size:13px;outline:none;width:100%;}
+.tmeta{font-size:10.5px;color:var(--tx3);}
+.tsc{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--bg2);}
+th{padding:9px 13px;text-align:left;font-size:9.5px;font-weight:700;color:var(--tx3);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--ln);white-space:nowrap;}
+td{padding:10px 13px;font-size:12.5px;border-bottom:1px solid var(--ln);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:var(--ppd);}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+.er td{text-align:center;color:var(--tx3);padding:40px;font-size:13px;}
+
+/* BADGE */
+.badge{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid;}
+.b-in{background:var(--gd);color:var(--gn);border-color:rgba(0,184,132,.28);}
+.b-out{background:var(--rd);color:var(--r1);border-color:rgba(229,41,90,.28);}
+.b-n{background:var(--gd);color:var(--gn);border-color:rgba(0,184,132,.28);}
+.b-r{background:var(--od);color:var(--or);border-color:rgba(245,147,49,.28);}
+.b-s{background:var(--gd);color:var(--gn);border-color:rgba(0,184,132,.28);}
+.b-i{background:var(--rd);color:var(--r1);border-color:rgba(229,41,90,.28);}
+.b-te{background:var(--td);color:var(--te);border-color:rgba(17,181,196,.28);}
+
+/* CHIPS */
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:13px;}
+.chip{padding:5px 12px;border-radius:20px;border:1px solid var(--ln2);background:var(--bg1);color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;}
+.chip:hover{background:var(--bg3);color:var(--tx);}
+.chip.act{background:var(--ppd);border-color:rgba(109,91,214,.4);color:var(--pp);}
+
+/* MODAL */
+.mo-ov{display:none;position:fixed;inset:0;background:rgba(26,28,46,.55);backdrop-filter:blur(8px);z-index:200;justify-content:center;align-items:center;padding:14px;}
+.mo-ov.open{display:flex;}
+.md{background:var(--bg1);border:1px solid var(--ln2);border-radius:18px;width:100%;max-width:580px;max-height:92vh;overflow-y:auto;box-shadow:var(--shd2);animation:mi .2s ease;}
+.md-lg{max-width:700px;}
+@keyframes mi{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.mh{padding:17px 20px 13px;border-bottom:1px solid var(--ln);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg1);z-index:1;}
+.mh-t{font-size:15px;font-weight:700;}
+.mc{width:28px;height:28px;border-radius:7px;background:var(--bg3);border:none;color:var(--tx2);cursor:pointer;font-size:13px;}
+.mc:hover{background:var(--rd);color:var(--r1);}
+.mb{padding:17px 20px;}
+.mf{padding:13px 20px;border-top:1px solid var(--ln);display:flex;gap:8px;justify-content:flex-end;}
+
+/* FORM */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fp{display:flex;flex-direction:column;gap:5px;}
+.fp.s2{grid-column:1/-1;}
+.fl{font-size:10px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.6px;}
+.fi{background:var(--bg2);border:1px solid var(--ln2);border-radius:var(--rad2);color:var(--tx);font-family:'IBM Plex Sans Thai',sans-serif;font-size:13.5px;padding:10px 12px;width:100%;outline:none;transition:all .15s;}
+.fi:focus{border-color:var(--pp);box-shadow:0 0 0 3px rgba(109,91,214,.1);background:var(--bg1);}
+.fhint{font-size:10px;color:var(--tx3);}
+.fsect{font-size:9px;font-weight:700;color:var(--tx3);letter-spacing:1.2px;text-transform:uppercase;padding:9px 0 2px;border-bottom:1px solid var(--ln);margin-bottom:2px;grid-column:1/-1;}
+.seg{display:flex;gap:5px;}
+.sb{flex:1;padding:10px 8px;border-radius:var(--rad2);border:1px solid var(--ln2);background:var(--bg2);color:var(--tx2);cursor:pointer;text-align:center;font-size:12.5px;font-weight:600;transition:all .15s;}
+.sb.og{border-color:rgba(0,184,132,.45);background:var(--gd);color:var(--gn);}
+.sb.oo{border-color:rgba(245,147,49,.45);background:var(--od);color:var(--or);}
+.sb.or2{border-color:rgba(229,41,90,.45);background:var(--rd);color:var(--r1);}
+.qrow{display:flex;align-items:center;}
+.qb{width:34px;height:36px;background:var(--bg3);border:1px solid var(--ln2);color:var(--tx);font-size:15px;cursor:pointer;}
+.qb:first-child{border-radius:var(--rad2) 0 0 var(--rad2);}.qb:last-child{border-radius:0 var(--rad2) var(--rad2) 0;}
+.qb:hover{background:var(--ppd);color:var(--pp);}
+.qi{width:58px;height:36px;background:var(--bg2);border:1px solid var(--ln2);border-left:none;border-right:none;color:var(--tx);text-align:center;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;outline:none;}
+.pnl{display:flex;flex-wrap:wrap;gap:5px;max-height:90px;overflow-y:auto;padding:7px;background:var(--bg2);border:1px solid var(--ln2);border-radius:var(--rad2);min-height:36px;}
+.pnt{background:var(--ppd);border:1px solid rgba(109,91,214,.3);color:var(--pp);border-radius:5px;padding:3px 8px;font-size:10.5px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:600;}
+.pnt:hover{background:var(--rd);border-color:rgba(229,41,90,.4);color:var(--r1);}
+.rngbox{background:var(--bg2);border:1px solid var(--ln);border-radius:var(--rad2);padding:12px;margin-top:6px;}
+.rngt{font-size:9px;font-weight:700;color:var(--tx3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.rngrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.rng-l{font-size:11px;color:var(--tx2);white-space:nowrap;}
+.rngprev{margin-top:7px;padding:6px 10px;background:var(--ppd);border:1px solid rgba(109,91,214,.2);border-radius:6px;font-size:10.5px;color:var(--pp);font-family:'IBM Plex Mono',monospace;min-height:26px;}
+.f-alert{padding:10px 13px;border-radius:var(--rad2);font-size:12.5px;border:1px solid;display:flex;align-items:center;gap:8px;margin-top:11px;}
+.al-e{background:var(--rd);border-color:rgba(229,41,90,.3);color:var(--r1);}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--ln);margin-bottom:13px;overflow-x:auto;}
+.tab{padding:9px 15px;background:none;border:none;color:var(--tx2);cursor:pointer;font-size:12.5px;font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
+.tab:hover{color:var(--tx);}.tab.act{color:var(--pp);border-bottom-color:var(--pp);font-weight:700;}
+.tab-pane{display:none;}.tab-pane.act{display:block;}
+
+/* STATS MINI */
+.smg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:13px;}
+.sm{border-radius:var(--rad2);padding:12px;text-align:center;border:1px solid;}
+.smg2{background:var(--gd);border-color:rgba(0,184,132,.22);}
+.smo2{background:var(--od);border-color:rgba(245,147,49,.22);}
+.smb2{background:var(--ppd);border-color:rgba(109,91,214,.22);}
+.smr2{background:var(--rd);border-color:rgba(229,41,90,.22);}
+.smt2{background:var(--td);border-color:rgba(17,181,196,.22);}
+.sml2{font-size:9.5px;color:var(--tx2);margin-bottom:4px;}
+.smv2{font-size:23px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+.smg2 .smv2{color:var(--gn);}.smo2 .smv2{color:var(--or);}.smb2 .smv2{color:var(--pp);}.smr2 .smv2{color:var(--r1);}.smt2 .smv2{color:var(--te);}
+
+/* HIST */
+.hi{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-bottom:1px solid var(--ln);}
+.hi:last-child{border-bottom:none;}
+.hd2{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.hd-in{background:var(--gn);}.hd-out{background:var(--r1);}
+.hb{flex:1;}.hm{font-size:10px;color:var(--tx3);margin-top:2px;}
+
+/* PD GRID */
+.pdg{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:5px;max-height:230px;overflow-y:auto;padding:2px;}
+.pdi{border-radius:7px;padding:7px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;border:1px solid;cursor:pointer;transition:transform .12s;}
+.pdi:hover{transform:scale(1.04);}
+.pdi.ink{background:var(--gd);border-color:rgba(0,184,132,.3);color:var(--gn);}
+.pdi.outk{background:var(--od);border-color:rgba(245,147,49,.3);color:var(--or);}
+.pdi-n{font-size:11.5px;font-weight:600;}.pdi-d{font-size:9px;opacity:.7;margin-top:1px;}
+.pdi-c{font-size:9px;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* LIFECYCLE */
+.lifecycle{display:flex;flex-direction:column;padding:4px 8px;}
+.lc-step{display:flex;gap:13px;align-items:flex-start;}
+.lc-step.pend{opacity:.5;}
+.lc-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.lc-in{background:var(--gn);box-shadow:0 0 0 4px rgba(0,184,132,.14);}
+.lc-out{background:var(--or);box-shadow:0 0 0 4px rgba(245,147,49,.14);}
+.lc-wait{background:var(--bg3);border:2px solid var(--tx3);}
+.lc-line{width:2px;height:26px;background:var(--bg4);margin-left:6px;border-radius:2px;}
+.lc-line.done{background:linear-gradient(180deg,var(--gn),var(--or));}
+.lc-body{padding-bottom:10px;}
+.lc-t{font-size:13.5px;font-weight:700;}.lc-m{font-size:11px;color:var(--tx2);margin-top:2px;}
+
+/* TOAST */
+.tc{position:fixed;bottom:16px;right:16px;z-index:600;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.toast{background:var(--bg1);border:1px solid var(--ln2);border-radius:var(--rad2);padding:11px 15px;font-size:12.5px;min-width:220px;max-width:320px;display:flex;align-items:center;gap:8px;box-shadow:var(--shd2);animation:ti .2s ease;font-weight:500;}
+@keyframes ti{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.toast.ok{border-color:rgba(0,184,132,.4);color:var(--gn);}
+.toast.er{border-color:rgba(229,41,90,.4);color:var(--r1);}
+.toast.in{border-color:rgba(109,91,214,.4);color:var(--pp);}
+.toast.wn{border-color:rgba(245,147,49,.4);color:var(--or);}
+
+/* CARD */
+.rc{background:var(--bg1);border:1px solid var(--ln);border-radius:var(--rad);margin-bottom:11px;}
+.rch{padding:11px 15px;border-bottom:1px solid var(--ln);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:space-between;background:var(--bg2);}
+.rcb{padding:13px 15px;}
+
+/* AUTOCOMPLETE */
+.ac-wrap{position:relative;}
+.ac-list{background:var(--bg1);border:1px solid var(--ln2);border-radius:var(--rad2);overflow:hidden;box-shadow:var(--shd);position:absolute;z-index:50;width:100%;max-height:190px;overflow-y:auto;display:none;}
+.ac-list.show{display:block;}
+.ac-item{padding:10px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--ln);}
+.ac-item:last-child{border-bottom:none;}.ac-item:hover{background:var(--ppd);}
+.ac-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--pp);font-weight:600;}
+.ac-det{font-size:11px;color:var(--tx2);margin-top:1px;}
+
+/* AUDIT */
+.au-row{padding:9px 12px;border-bottom:1px solid var(--ln);font-size:11.5px;display:flex;gap:10px;}
+.au-row:last-child{border-bottom:none;}
+.au-time{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--tx3);white-space:nowrap;min-width:95px;}
+
+.fw6{font-weight:600;}.fw7{font-weight:700;}
+.tgn{color:var(--gn);}.tor{color:var(--or);}.tbl{color:var(--pp);}.trd{color:var(--r1);}.ttx{color:var(--tx2);}.ttd{color:var(--tx3);}.tte{color:var(--te);}
+.fmono{font-family:'IBM Plex Mono',monospace;}
+.mt1{margin-top:6px;}.mt2{margin-top:12px;}
+::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
+.hamb{display:none;width:36px;height:36px;border-radius:9px;border:1px solid var(--ln2);background:var(--bg2);color:var(--tx);cursor:pointer;align-items:center;justify-content:center;flex-shrink:0;}
+.hamb:active{background:var(--bg3);}
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(26,28,46,.4);backdrop-filter:blur(2px);z-index:90;}
+.sb-backdrop.show{display:block;}
+@media(max-width:768px){
+  .hamb{display:flex;}
+  .top{padding:0 12px;height:56px;}
+  .top-sub{display:none;}
+  .top-title{font-size:12px;}
+  .tr-hide{display:none;}
+  .main{padding:16px;}
+  .sidebar{position:fixed;top:0;left:0;height:100vh;z-index:100;transform:translateX(-100%);transition:transform .26s cubic-bezier(.2,.8,.3,1);box-shadow:var(--shd2);padding-top:16px;}
+  .sidebar.open{transform:translateX(0);}
+  .fg{grid-template-columns:1fr;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .smg{grid-template-columns:1fr 1fr;}
+  .pt{font-size:19px;}
+  .sg{grid-template-columns:1fr;}
+}
+@media(max-width:420px){
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .kc-val{font-size:27px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ APP ═══════════ -->
+<div id="app">
+<header class="top">
+  <div class="tb-brand">
+    <button class="hamb" onclick="toggleSidebar()" aria-label="เมนู">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="pea-logo">PEA</div>
+    <div><div class="top-title">ระบบคลังเสา &amp; ก้อนสมอ</div><div class="top-sub">สาขาย่อยคำชะอี · Firebase Cloud</div></div>
+  </div>
+  <div class="top-right">
+    <div class="live"><div class="live-dot"></div>ออนไลน์</div>
+    <div id="syncBadge" class="sy-ok">🔗 เชื่อมต่อแล้ว</div>
+    <button class="btn btn-gh btn-sm tr-hide" onclick="exportCSV()">CSV</button>
+    <button class="btn btn-gn btn-sm tr-hide" onclick="exportJSON()">💾 Backup</button>
+    <button class="btn btn-p btn-sm" onclick="openTx()">+ ธุรกรรม</button>
+  </div>
+</header>
+
+<div class="sb-backdrop" id="sbBackdrop" onclick="toggleSidebar()"></div>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    <div class="sl-lbl">หน้าหลัก</div>
+    <div class="ni act" data-view="dashboard" onclick="sw('dashboard')"><span style="width:16px;text-align:center;">⊞</span>แดชบอร์ด</div>
+    <div class="ni" data-view="stock" onclick="sw('stock')"><span style="width:16px;text-align:center;">⬡</span>สต็อกเสา</div>
+    <div class="ni" data-view="anchor" onclick="sw('anchor')"><span style="width:16px;text-align:center;">◎</span>คลังก้อนสมอ</div>
+    <div class="ni" data-view="transaction" onclick="sw('transaction')"><span style="width:16px;text-align:center;">≡</span>ธุรกรรม</div>
+    <div class="ni" data-view="poles" onclick="sw('poles')"><span style="width:16px;text-align:center;">#</span>ทะเบียนเสา N</div>
+    <div class="sl-lbl">จัดการ</div>
+    <div class="ni" onclick="openTx('in')"><span>↓</span>รับเข้าคลัง</div>
+    <div class="ni" onclick="openTx('out')"><span>↑</span>จ่ายออก</div>
+    <div class="ni" data-view="audit" onclick="sw('audit')"><span style="width:16px;text-align:center;">📜</span>ประวัติแก้ไข</div>
+    <div class="ni" data-view="report" onclick="sw('report')"><span style="width:16px;text-align:center;">◫</span>รายงาน</div>
+    <div class="ni" data-view="settings" onclick="sw('settings')"><span style="width:16px;text-align:center;">◈</span>ตั้งค่า</div>
+  </nav>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="vw" id="view-dashboard">
+      <div class="ph"><div><div class="pt">แดชบอร์ด</div><div class="ps" id="dashDate">—</div></div>
+        <button class="btn btn-p btn-sm" onclick="openTx()">+ ธุรกรรม</button></div>
+      <div class="gs-wrap">
+        <svg class="gs-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="gs-inp" id="gsInp" placeholder="ค้นหาหมายเลขเสา · WBS/PM · ชื่องาน · ผู้รับจ้าง..." oninput="renderGS()">
+        <button class="gs-clr" id="gsClr" style="display:none;" onclick="document.getElementById('gsInp').value='';renderGS();">✕ ล้าง</button>
+      </div>
+      <div class="gs-hints" id="gsHints">
+        <span class="gh">💡 พิมพ์เพื่อค้นหา</span><span class="gh" style="opacity:.35">·</span>
+        <span class="gh tgn">หมายเลขเสา</span><span class="gh" style="opacity:.35">·</span>
+        <span class="gh tbl">WBS/PM</span><span class="gh" style="opacity:.35">·</span>
+        <span class="gh tor">ผู้รับจ้าง</span><span class="gh" style="opacity:.35">·</span>
+        <span class="gh tte">ชื่องาน</span>
+      </div>
+      <div id="gsResults" style="display:none;margin-bottom:16px;"></div>
+      <div class="kpi-grid" id="kpiGrid"></div>
+      <div class="sl2">สต็อกเสา — คลิกดูรายละเอียด</div>
+      <div class="sg" id="dashSg"></div>
+      <div class="sl2">คลังก้อนสมอ</div>
+      <div id="dashAg"></div>
+      <div class="sl2" style="margin-top:20px;">ธุรกรรมล่าสุด</div>
+      <div class="tw"><div class="tsc"><table><thead><tr><th>วันที่</th><th>ประเภท</th><th>สินค้า</th><th>แบท</th><th>จำนวน</th><th>ผู้รับจ้าง</th><th>ชื่องาน</th></tr></thead><tbody id="recentBody"></tbody></table></div></div>
+    </div>
+
+    <!-- STOCK -->
+    <div class="vw" id="view-stock" style="display:none;">
+      <div class="ph"><div><div class="pt">สต็อกเสาไฟฟ้า</div><div class="ps">คลิกการ์ดดูรายละเอียด</div></div><button class="btn btn-p btn-sm" onclick="openTx()">+ ธุรกรรม</button></div>
+      <div class="sg" id="stockSg"></div>
+    </div>
+
+    <!-- ANCHOR -->
+    <div class="vw" id="view-anchor" style="display:none;">
+      <div class="ph"><div><div class="pt">คลังก้อนสมอ</div></div><button class="btn btn-te btn-sm" onclick="openTx('in','anchor')">+ ธุรกรรมก้อนสมอ</button></div>
+      <div id="anchorSg"></div>
+    </div>
+
+    <!-- TRANSACTION -->
+    <div class="vw" id="view-transaction" style="display:none;">
+      <div class="ph"><div><div class="pt">รายการธุรกรรม</div><div class="ps" id="txnCount">0 รายการ</div></div>
+        <div class="btn-row"><button class="btn btn-gn btn-sm" onclick="openTx('in')">↓ รับเข้า</button><button class="btn btn-gh btn-sm" onclick="openTx('out')">↑ จ่ายออก</button></div></div>
+      <div class="chips" id="txnChips">
+        <div class="chip act" onclick="fTxn('all',this)">ทั้งหมด</div>
+        <div class="chip" onclick="fTxn('in',this)">รับเข้า</div>
+        <div class="chip" onclick="fTxn('out',this)">จ่ายออก</div>
+        <div class="chip" onclick="fTxn('N',this)">แบท N</div>
+        <div class="chip" onclick="fTxn('R',this)">แบท R</div>
+        <div class="chip" onclick="fTxn('anchor',this)">ก้อนสมอ</div>
+      </div>
+      <div class="tw"><div class="ttb">
+        <div class="sw"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="txnSearch" placeholder="ค้นหา..." oninput="renderTxn()"></div>
+        <span class="tmeta" id="txnCnt2">0 รายการ</span>
+      </div><div class="tsc"><table>
+        <thead><tr><th>#</th><th>วันที่</th><th>เวลา</th><th>ประเภท</th><th>สินค้า</th><th>รหัส</th><th>แบท</th><th>จำนวน</th><th>หมายเลขเสา</th><th>ผู้รับจ้าง</th><th>WBS/PM</th><th>ชื่องาน</th><th>หมายเหตุ</th><th>บันทึกโดย</th><th></th></tr></thead>
+        <tbody id="txnBody"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- POLES -->
+    <div class="vw" id="view-poles" style="display:none;">
+      <div class="ph"><div><div class="pt">ทะเบียนเสา แบท N</div><div class="ps" id="poleCount">0 ต้น</div></div></div>
+      <div class="chips" id="poleChips"></div>
+      <div class="tw"><div class="ttb">
+        <div class="sw"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="poleSearch" placeholder="ค้นหาหมายเลขเสา..." oninput="renderPoles()"></div>
+        <span class="tmeta" id="poleCnt2">0 ต้น</span>
+      </div><div class="tsc"><table>
+        <thead><tr><th>หมายเลขเสา</th><th>ขนาด</th><th>รหัสพัสดุ</th><th>วันที่รับเข้า</th><th>เวลารับ</th><th>สถานะ</th><th>วันที่จ่ายออก</th><th>เวลาจ่าย</th><th>ผู้รับจ้าง</th><th>ชื่องาน</th><th>WBS/PM</th></tr></thead>
+        <tbody id="polesBody"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- AUDIT -->
+    <div class="vw" id="view-audit" style="display:none;">
+      <div class="ph"><div><div class="pt">📜 ประวัติการแก้ไข</div><div class="ps" id="auditCount">บันทึกทุกการเปลี่ยนแปลง</div></div></div>
+      <div class="tw" id="auditBody"></div>
+    </div>
+
+    <!-- REPORT -->
+    <div class="vw" id="view-report" style="display:none;">
+      <div class="ph"><div><div class="pt">รายงานสรุป</div></div>
+        <div class="btn-row">
+          <button class="btn btn-xl btn-sm" onclick="exportCSV()">📥 CSV</button>
+          <button class="btn btn-gn btn-sm" onclick="exportJSON()">💾 Backup JSON</button>
+          <label class="btn btn-gh btn-sm" style="cursor:pointer;">📂 Import JSON<input type="file" accept=".json" style="display:none;" onchange="importJSON(event)"></label>
+        </div>
+      </div>
+      <div id="reportContent"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="vw" id="view-settings" style="display:none;">
+      <div class="ph"><div><div class="pt">ตั้งค่าระบบ</div></div></div>
+      <div class="rc" style="max-width:500px;"><div class="rch">รหัสพัสดุเสาไฟฟ้า</div><div class="rcb" id="poleCodesUI"></div></div>
+      <div class="rc" style="max-width:500px;"><div class="rch">ก้อนสมอ</div><div class="rcb" id="ancUI"></div></div>
+      <div class="rc" style="max-width:500px;"><div class="rch">ผู้รับจ้างที่ใช้บ่อย</div><div class="rcb" id="contrUI"></div></div>
+      <div class="rc" style="max-width:500px;"><div class="rch">⚠️ โซนอันตราย</div><div class="rcb">
+        <button class="btn btn-rd btn-sm" onclick="clearAllData()">🗑 ล้างข้อมูลทั้งหมด</button>
+        <div style="font-size:11px;color:var(--tx3);margin-top:6px;">จะลบข้อมูลทั้งหมดบนคลาวด์ ทุกเครื่องจะเห็นการเปลี่ยนแปลง</div>
+      </div></div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<!-- ══ MODAL: TRANSACTION ══ -->
+<div class="mo-ov" id="mo-tx"><div class="md">
+  <div class="mh"><span class="mh-t" id="moTxTitle">บันทึกธุรกรรม</span><button class="mc" onclick="closeModal('mo-tx')">✕</button></div>
+  <div class="mb">
+    <div class="fp s2" style="margin-bottom:4px;"><div class="fl">หมวดสินค้า</div><div class="seg">
+      <button class="sb og" id="catPole" onclick="setCat('pole')">🏗️ เสาไฟฟ้า</button>
+      <button class="sb" id="catAnchor" onclick="setCat('anchor')">⚓ ก้อนสมอ</button>
+    </div></div>
+    <div class="fp s2" style="margin-bottom:4px;"><div class="fl">ประเภทธุรกรรม</div><div class="seg">
+      <button class="sb og" id="txIn" onclick="setTxType('in')">↓ รับเข้าคลัง</button>
+      <button class="sb" id="txOut" onclick="setTxType('out')">↑ จ่ายออก</button>
+    </div></div>
+
+    <div class="fg" id="txForm">
+      <div id="poleSection" style="display:contents;">
+        <div class="fp"><label class="fl">ขนาดเสา</label>
+          <select class="fi" id="txSize" onchange="updCode()">
+            <option value="">— เลือกขนาด —</option>
+            <option value="8.00">8.00 ม.</option><option value="9.00">9.00 ม.</option>
+            <option value="12.00">12.00 ม.</option><option value="12.20">12.20 ม.</option>
+            <option value="14.00">14.00 ม.</option><option value="14.30">14.30 ม.</option>
+          </select>
+        </div>
+        <div class="fp"><label class="fl">รหัสพัสดุ</label><input class="fi fmono" id="txCode" readonly placeholder="—"></div>
+        <div class="fp s2"><div class="fl">แบท</div><div class="seg">
+          <button class="sb og" id="batN" onclick="setBat('N')">🟢 แบท N — เสาใหม่ (มีหมายเลข)</button>
+          <button class="sb" id="batR" onclick="setBat('R')">🟡 แบท R — เสาเก่าดี</button>
+        </div></div>
+        <div class="fp s2" id="pnsSec">
+          <label class="fl">หมายเลขเสา</label>
+          <div style="display:flex;gap:5px;margin-bottom:7px;flex-wrap:wrap;">
+            <input class="fi fmono" id="pnInp" placeholder="กรอกหมายเลขแล้วกด Enter" style="max-width:200px;" onkeydown="if(event.key==='Enter')addPN()">
+            <button class="btn btn-gh btn-sm" onclick="addPN()">+ เพิ่ม</button>
+            <button class="btn btn-gh btn-sm" onclick="openModal('mo-imp')">📋 หลายหมายเลข</button>
+          </div>
+          <div class="rngbox">
+            <div class="rngt">เพิ่มแบบช่วงหมายเลข (เรียงต่อกัน)</div>
+            <div class="rngrow">
+              <span class="rng-l">จาก</span><input class="fi fmono" type="number" id="rFrom" placeholder="1" style="width:68px;" oninput="prvRng()">
+              <span class="rng-l">ถึง</span><input class="fi fmono" type="number" id="rTo" placeholder="20" style="width:68px;" oninput="prvRng()">
+              <span class="rng-l">หลัก</span><input class="fi fmono" type="number" id="rPad" value="0" style="width:50px;" min="0" max="6" oninput="prvRng()">
+              <button class="btn btn-gn btn-sm" onclick="addRange()">+ เพิ่ม</button>
+            </div>
+            <div class="rngprev" id="rngPrev">ตัวอย่าง: กรอกข้อมูลด้านบน</div>
+          </div>
+          <div class="pnl" id="pnList" style="margin-top:7px;"><span style="color:var(--tx3);font-size:11px;">ยังไม่ได้เพิ่มหมายเลข</span></div>
+          <div class="fhint mt1">คลิกที่แท็กเพื่อลบ · รวม <span id="pnCount" class="tbl fw6">0</span> ต้น</div>
+        </div>
+        <div class="fp s2" id="qtySec" style="display:none;">
+          <label class="fl">จำนวน (ต้น)</label>
+          <div class="qrow"><button class="qb" onclick="chQ(-1)">−</button><input class="qi" type="number" id="txQty" value="1" min="1"><button class="qb" onclick="chQ(1)">+</button></div>
+        </div>
+      </div>
+      <div id="ancSection" style="display:none;grid-column:1/-1;">
+        <div class="fp s2"><label class="fl">จำนวน (ก้อน)</label>
+          <div class="qrow"><button class="qb" onclick="chAQ(-1)">−</button><input class="qi" type="number" id="txAQty" value="1" min="1"><button class="qb" onclick="chAQ(1)">+</button></div>
+        </div>
+      </div>
+
+      <div id="projSection" style="display:contents;">
+      <div class="fsect" id="projSectLabel">รายละเอียดโครงการ</div>
+      <div class="fp" id="contrField"><label class="fl">ผู้รับจ้าง</label>
+        <div class="ac-wrap"><input class="fi" id="txContr" placeholder="ชื่อผู้รับจ้าง / บริษัท" autocomplete="off" oninput="acContr(this.value)" onfocus="acContr(this.value)" onblur="setTimeout(()=>hideAc('contrAC'),180)">
+        <div class="ac-list" id="contrAC"></div></div>
+      </div>
+      <div class="fp" id="wbsField"><label class="fl">หมายเลขงาน WBS / PM</label>
+        <div class="ac-wrap"><input class="fi fmono" id="txWbs" placeholder="WBS-2025-001" oninput="acWbs(this.value)" onblur="setTimeout(()=>hideAc('wbsAC'),180)">
+        <div class="ac-list" id="wbsAC"></div></div>
+      </div>
+      <div class="fp s2" id="projField"><label class="fl">ชื่องาน / รายละเอียดโครงการ</label>
+        <div class="ac-wrap"><input class="fi" id="txProj" placeholder="เช่น งานติดตั้งเสาสายส่งฯ บ้านนาหว้า" oninput="acProj(this.value)" onblur="setTimeout(()=>hideAc('prjAC'),180)">
+        <div class="ac-list" id="prjAC"></div></div>
+      </div>
+      </div>
+      <div class="fp"><label class="fl">วันที่</label><input type="date" class="fi" id="txDate"></div>
+      <div class="fp"><label class="fl">ผู้บันทึก</label>
+        <div class="ac-wrap"><input class="fi" id="txUser" placeholder="ชื่อ-นามสกุล" autocomplete="off" oninput="acUser(this.value)" onfocus="acUser(this.value)" onblur="setTimeout(()=>hideAc('userAC'),180)">
+        <div class="ac-list" id="userAC"></div></div>
+      </div>
+      <div class="fp s2"><label class="fl">หมายเหตุ</label>
+        <div class="ac-wrap"><textarea class="fi" id="txNote" rows="2" placeholder="หมายเหตุเพิ่มเติม..." autocomplete="off" oninput="acNote(this.value)" onfocus="acNote(this.value)" onblur="setTimeout(()=>hideAc('noteAC'),180)"></textarea>
+        <div class="ac-list" id="noteAC"></div></div>
+      </div>
+    </div>
+    <div id="txAlert" class="f-alert al-e" style="display:none;"></div>
+  </div>
+  <div class="mf"><button class="btn btn-gh" onclick="closeModal('mo-tx')">ยกเลิก</button><button class="btn btn-p" onclick="submitTx()">💾 บันทึก</button></div>
+</div></div>
+
+<!-- ══ MODAL: IMPORT ══ -->
+<div class="mo-ov" id="mo-imp"><div class="md" style="max-width:400px;">
+  <div class="mh"><span class="mh-t">นำเข้าหลายหมายเลข</span><button class="mc" onclick="closeModal('mo-imp')">✕</button></div>
+  <div class="mb"><div class="fp"><label class="fl">วางหมายเลขเสา (แต่ละหมายเลขขึ้นบรรทัดใหม่ หรือคั่น ,)</label><textarea class="fi fmono" id="impTxt" rows="9" placeholder="1001&#10;1002&#10;1003"></textarea></div></div>
+  <div class="mf"><button class="btn btn-gh" onclick="closeModal('mo-imp')">ยกเลิก</button><button class="btn btn-gn" onclick="doImport()">นำเข้า</button></div>
+</div></div>
+
+<!-- ══ MODAL: POLE DETAIL ══ -->
+<div class="mo-ov" id="mo-pd"><div class="md md-lg">
+  <div class="mh"><span class="mh-t" id="pdTitle">รายละเอียด</span><button class="mc" onclick="closeModal('mo-pd')">✕</button></div>
+  <div class="mb" id="pdBody"></div>
+  <div class="mf"><button class="btn btn-gh" onclick="closeModal('mo-pd')">ปิด</button></div>
+</div></div>
+
+<!-- ══ MODAL: ANCHOR DETAIL ══ -->
+<div class="mo-ov" id="mo-ad"><div class="md md-lg">
+  <div class="mh"><span class="mh-t" id="adTitle">⚓ ก้อนสมอ</span><button class="mc" onclick="closeModal('mo-ad')">✕</button></div>
+  <div class="mb" id="adBody"></div>
+  <div class="mf"><button class="btn btn-gh" onclick="closeModal('mo-ad')">ปิด</button></div>
+</div></div>
+
+<!-- ══ MODAL: KPI DETAIL ══ -->
+<div class="mo-ov" id="mo-kd"><div class="md md-lg">
+  <div class="mh"><span class="mh-t" id="kdTitle">รายละเอียด</span><button class="mc" onclick="closeModal('mo-kd')">✕</button></div>
+  <div class="mb" id="kdBody"></div>
+  <div class="mf"><button class="btn btn-gh" onclick="closeModal('mo-kd')">ปิด</button></div>
+</div></div>
+
+<!-- ══ MODAL: POLE HISTORY ══ -->
+<div class="mo-ov" id="mo-ph"><div class="md md-lg">
+  <div class="mh"><span class="mh-t" id="phTitle">ประวัติเสา</span><button class="mc" onclick="closeModal('mo-ph')">✕</button></div>
+  <div class="mb" id="phBody"></div>
+  <div class="mf"><button class="btn btn-gh" onclick="closeModal('mo-ph')">ปิด</button></div>
+</div></div>
+
+<div class="tc" id="tc"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════
+const SZ = ["8.00","9.00","12.00","12.20","14.00","14.30"];
+const DC = {"8.00":"1000010001","9.00":"1000010002","12.00":"1000010004","12.20":"1000010012","14.00":"1000010006","14.30":"1000010013"};
+
+let db = null;          // local working copy of data
+let fbRef = null;       // firebase database ref
+let suppressNextWrite = false; // avoid feedback loop when remote update arrives
+let view = "dashboard";
+let modalStack = [];
+
+// form state
+let txType="in", bat="N", cat="pole", pns=[];
+let txnFilt="all", poleFilt="all";
+
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function nowTH(){
+  const d = new Date();
+  return {
+    date: d.toLocaleDateString("th-TH",{day:"2-digit",month:"2-digit",year:"numeric"}),
+    time: d.toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"}),
+    iso: d.toISOString()
+  };
+}
+// ═══════════════════════════════════════════
+// FIREBASE KEY SANITIZE — Firebase ห้าม key มีจุด (.)
+// แปลง "8.00" → "8_00" ตอนเก็บ แล้วแปลงกลับตอนอ่าน
+// db ในหน่วยความจำใช้ key เดิม ("8.00") เสมอ
+// ═══════════════════════════════════════════
+function encKey(k){ return String(k).replace(/\./g,"_"); }
+function decKey(k){ return String(k).replace(/_/g,"."); }
+
+function encodeDB(d){
+  if(!d) return d;
+  const out = JSON.parse(JSON.stringify(d));
+  // poleCodes: { "8.00":... } → { "8_00":... }
+  if(out.poleCodes){
+    const pc={}; for(const k in out.poleCodes) pc[encKey(k)]=out.poleCodes[k];
+    out.poleCodes=pc;
+  }
+  return out;
+}
+function decodeDB(d){
+  if(!d) return d;
+  const out = JSON.parse(JSON.stringify(d));
+  if(out.poleCodes){
+    const pc={}; for(const k in out.poleCodes) pc[decKey(k)]=out.poleCodes[k];
+    out.poleCodes=pc;
+  }
+  // Firebase อาจคืน transactions เป็น object แทน array
+  if(out.transactions && !Array.isArray(out.transactions)){
+    out.transactions=Object.values(out.transactions);
+  }
+  if(out.contractors && !Array.isArray(out.contractors)){
+    out.contractors=Object.values(out.contractors);
+  }
+  if(out.auditLog && !Array.isArray(out.auditLog)){
+    out.auditLog=Object.values(out.auditLog);
+  }
+  if(!out.transactions) out.transactions=[];
+  if(!out.contractors) out.contractors=[];
+  if(!out.auditLog) out.auditLog=[];
+  if(!out.poleReg) out.poleReg={};
+  return out;
+}
+
+function mkDB(){
+  return {
+    poleCodes: {...DC},
+    anchor: { name:"ก้อนสมอ", code:"2531005000" },
+    transactions: [], poleReg: {},
+    contractors: ["บริษัท อ.คำชะอี คอนสตรัคชั่น จำกัด","บริษัท มุกดาหาร อีเล็คทริค จำกัด"],
+    nextId: 1, auditLog: [],
+  };
+}
+function poleStock(){
+  const s={}; SZ.forEach(z=>s[z]={N:0,R:0});
+  db.transactions.filter(t=>t.cat==="pole").forEach(t=>{
+    const d=t.type==="in"?1:-1;
+    if(!s[t.size])s[t.size]={N:0,R:0};
+    s[t.size][t.bat]+=d*t.qty;
+  });
+  return s;
+}
+function ancStock(){ return db.transactions.filter(t=>t.cat==="anchor").reduce((n,t)=>n+(t.type==="in"?1:-1)*t.qty,0); }
+
+// ═══════════════════════════════════════════
+// FIREBASE CONNECT — config ฝังตรง ไม่ต้องกรอก
+// ═══════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAGbHwagRjGTLWf8vth4wfsL0STj9Q0EK0",
+  authDomain: "coltrol-pole-peakce.firebaseapp.com",
+  databaseURL: "https://coltrol-pole-peakce-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "coltrol-pole-peakce",
+  storageBucket: "coltrol-pole-peakce.firebasestorage.app",
+  messagingSenderId: "896491333058",
+  appId: "1:896491333058:web:fc9acca8f48537a744e25b"
+};
+
+function initFirebaseApp(cfg){
+  if(!firebase.apps.length) firebase.initializeApp(cfg);
+  const database = firebase.database();
+  fbRef = database.ref("pea_khamchaee_inventory");
+
+  setSyncBadge("connecting");
+
+  // ถ้า Firebase ไม่ตอบใน 8 วินาที ให้สลับไปโหมดออฟไลน์
+  let gotData = false;
+  const failTimer = setTimeout(()=>{
+    if(!gotData && !db){
+      startLocalMode("Cloud ไม่ตอบสนอง");
+    }
+  }, 8000);
+
+  // Listen for realtime changes
+  fbRef.on("value", (snapshot) => {
+    gotData = true;
+    clearTimeout(failTimer);
+    if(localMode) return; // ถ้าสลับไป local แล้วไม่ต้องเขียนทับ
+    const remote = snapshot.val();
+    if(!remote){
+      // first time — initialize
+      db = mkDB();
+      suppressNextWrite = true;
+      fbRef.set(encodeDB(db));
+      afterDataReady();
+      return;
+    }
+    db = decodeDB(remote);
+    afterDataReady();
+    setSyncBadge("ok");
+  }, (err) => {
+    setSyncBadge("err");
+    toast("⚠ การเชื่อมต่อ Firebase ผิดพลาด: " + err.message, "er");
+  });
+
+  // Connection state monitor
+  database.ref(".info/connected").on("value", (snap) => {
+    if(snap.val() === true){
+      if(db) setSyncBadge("ok");
+    } else {
+      setSyncBadge("cn");
+    }
+  });
+}
+
+function setSyncBadge(state){
+  const el = document.getElementById("syncBadge");
+  if(!el) return;
+  if(state==="ok") { el.className="sy-ok"; el.textContent="🔗 เชื่อมต่อแล้ว"; }
+  else if(state==="saving") { el.className="sy-sv"; el.textContent="💾 กำลังบันทึก…"; }
+  else if(state==="err") { el.className="sy-er"; el.textContent="⚠ การเชื่อมต่อล้มเหลว"; }
+  else if(state==="cn") { el.className="sy-cn"; el.textContent="🔌 กำลังเชื่อมต่อ…"; }
+  else if(state==="connecting") { el.className="sy-cn"; el.textContent="🔌 กำลังเชื่อมต่อ…"; }
+}
+
+let firstLoad = true;
+function afterDataReady(){
+  if(firstLoad){
+    firstLoad = false;
+    renderAll();
+  } else {
+    renderAll();
+    if(!suppressNextWrite) toast("🔄 ข้อมูลอัปเดตจากเครื่องอื่น","in");
+  }
+  suppressNextWrite = false;
+}
+
+async function persist(){
+  if(localMode){
+    saveLocal();
+    return;
+  }
+  setSyncBadge("saving");
+  try {
+    await fbRef.set(encodeDB(db));
+    setSyncBadge("ok");
+  } catch(e){
+    setSyncBadge("err");
+    toast("⚠ บันทึกล้มเหลว: "+e.message,"er");
+  }
+}
+
+function clearAllData(){
+  if(!confirm("ล้างข้อมูลทั้งหมด? ไม่สามารถย้อนกลับได้")) return;
+  db = mkDB();
+  persist();
+  toast("ล้างข้อมูลแล้ว","wn");
+}
+
+// ═══════════════════════════════════════════
+// LOCAL STORAGE FALLBACK (เมื่อ Firebase โหลดไม่ได้)
+// ═══════════════════════════════════════════
+let localMode = false;
+const LOCAL_KEY = "pea_kce_local_data";
+
+function loadLocal(){
+  try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || "null"); } catch { return null; }
+}
+function saveLocal(){
+  try { localStorage.setItem(LOCAL_KEY, JSON.stringify(db)); } catch(e){}
+}
+
+function startLocalMode(reason){
+  localMode = true;
+  db = loadLocal() || mkDB();
+  const el = document.getElementById("syncBadge");
+  if(el){ el.className="sy-er"; el.textContent="⚠ โหมดออฟไลน์ (เครื่องนี้)"; }
+  renderAll();
+  setTimeout(()=>{ try{ toast("⚠ เชื่อม Cloud ไม่ได้ ("+reason+") — ใช้โหมดบันทึกในเครื่องนี้แทน เปิดด้วย Safari/Chrome เพื่อ sync ทุกเครื่อง","wn"); }catch(e){} }, 600);
+}
+
+// ═══════════════════════════════════════════
+// INIT ON LOAD
+// ═══════════════════════════════════════════
+window.addEventListener("DOMContentLoaded", () => {
+  const dateEl = document.getElementById("txDate");
+  if(dateEl) dateEl.value = new Date().toISOString().slice(0,10);
+
+  // ตรวจว่า Firebase SDK โหลดได้ไหม
+  if(typeof firebase === "undefined" || !firebase.initializeApp){
+    startLocalMode("ไม่พบ Firebase SDK");
+    return;
+  }
+  try {
+    initFirebaseApp(FIREBASE_CONFIG);
+  } catch(e){
+    startLocalMode(e.message || "init error");
+  }
+});
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function toggleSidebar(){
+  const sb=document.getElementById("sidebar");
+  const bd=document.getElementById("sbBackdrop");
+  const open=sb.classList.toggle("open");
+  bd.classList.toggle("show", open);
+}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sbBackdrop").classList.remove("show");
+}
+function sw(name){
+  view = name;
+  document.querySelectorAll(".vw").forEach(v=>v.style.display="none");
+  document.querySelectorAll(".ni").forEach(n=>n.classList.remove("act"));
+  document.getElementById("view-"+name).style.display="block";
+  const item = document.querySelector('.ni[data-view="'+name+'"]');
+  if(item) item.classList.add("act");
+  renderView(name);
+  closeSidebar();
+}
+function renderAll(){
+  renderDash(); renderStock(); renderAnchor(); renderTxn(); renderPoles(); renderAudit(); renderReport(); renderSettings();
+  updateContrDL();
+}
+function renderView(name){
+  ({dashboard:renderDash,stock:renderStock,anchor:renderAnchor,transaction:renderTxn,poles:renderPoles,audit:renderAudit,report:renderReport,settings:renderSettings})[name]?.();
+}
+
+// ═══════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════
+function openModal(id){ document.getElementById(id).classList.add("open"); }
+function closeModal(id){ document.getElementById(id).classList.remove("open"); }
+document.addEventListener("click", e=>{
+  if(e.target.classList && e.target.classList.contains("mo-ov")) e.target.classList.remove("open");
+});
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function toast(msg,type="in"){
+  const c=document.getElementById("tc");
+  const el=document.createElement("div");
+  el.className="toast "+type; el.textContent=msg;
+  c.appendChild(el);
+  setTimeout(()=>{el.style.opacity="0";el.style.transform="translateX(100%)";el.style.transition="all .3s";setTimeout(()=>el.remove(),300);},3500);
+}
+
+// ═══════════════════════════════════════════
+// DASHBOARD RENDER
+// ═══════════════════════════════════════════
+function renderDash(){
+  if(!db) return;
+  const now=new Date();
+  document.getElementById("dashDate").textContent = now.toLocaleDateString("th-TH",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  const ps=poleStock(), as=ancStock();
+  const totN=SZ.reduce((s,z)=>s+ps[z].N,0);
+  const totR=SZ.reduce((s,z)=>s+ps[z].R,0);
+  const totIn=db.transactions.filter(t=>t.type==="in").reduce((s,t)=>s+t.qty,0);
+  const totOut=db.transactions.filter(t=>t.type==="out").reduce((s,t)=>s+t.qty,0);
+
+  document.getElementById("kpiGrid").innerHTML = [
+    ["kb","เสาคงคลังรวม",totN+totR,"ต้น · ทุกขนาด","total"],
+    ["kg","แบท N",totN,"มีหมายเลขประจำต้น","N"],
+    ["ko","แบท R",totR,"เสาเก่าดี","R"],
+    ["kt","ก้อนสมอ",as,"ก้อน · คงเหลือ","anc"],
+    ["kg","รับเข้า",totIn,"รายการรวม","in"],
+    ["kr","จ่ายออก",totOut,"รายการรวม","out"],
+  ].map(([cls,lbl,val,sub,k])=>
+    `<div class="kc ${cls}" onclick="${k==='anc'?'openAncDetail()':("openKD('"+k+"')")}">
+      <div class="kc-lbl">${lbl}</div><div class="kc-val">${val}</div><div class="kc-sub">${sub}</div>
+    </div>`
+  ).join("");
+
+  renderStockCards("dashSg", ps);
+  renderAncCard("dashAg", as);
+
+  const recent=[...db.transactions].reverse().slice(0,6);
+  document.getElementById("recentBody").innerHTML = !recent.length
+    ? '<tr class="er"><td colspan="7">ยังไม่มีรายการ</td></tr>'
+    : recent.map(t=>`<tr>
+        <td class="mono">${t.date}</td>
+        <td>${badge(t.type==="in"?"in":"out")}</td>
+        <td class="mono fw6">${t.cat==="anchor"?"ก้อนสมอ":t.size+" ม."}</td>
+        <td>${t.cat==="anchor"?badge("te"):badge(t.bat)}</td>
+        <td class="fw6 ${t.type==='in'?'tgn':'trd'}">${t.type==='in'?'+':'−'}${t.qty}</td>
+        <td>${t.contractor||"—"}</td>
+        <td style="font-size:11px;">${t.project||"—"}</td>
+      </tr>`).join("");
+}
+
+function badge(k){
+  const m={in:["b-in","↓ รับ"],out:["b-out","↑ จ่าย"],N:["b-n","N"],R:["b-r","R"],s:["b-s","คงคลัง"],i:["b-i","จ่ายออก"],te:["b-te","สมอ"]};
+  const [c,l]=m[k]||["b-n","?"];
+  return `<span class="badge ${c}">${l}</span>`;
+}
+
+function renderStockCards(containerId, ps){
+  document.getElementById(containerId).innerHTML = SZ.map(z=>{
+    const n=ps[z].N,r=ps[z].R,tot=n+r;
+    const pn=tot?(n/tot)*100:0, pr=tot?(r/tot)*100:0;
+    return `<div class="sc" onclick="openPoleDetail('${z}')">
+      <div class="sc-top"><div><div class="psz">${z} เมตร</div><div class="pcd">${db.poleCodes[z]||"—"}</div></div><span class="stk-pill">${tot} ต้น</span></div>
+      <div class="sc-body">
+        <div class="sr"><div class="slb"><span class="dot-g"></span>แบท N</div><span class="sn sng">${n}</span></div>
+        <div class="sr"><div class="slb"><span class="dot-o"></span>แบท R</div><span class="sn sno">${r}</span></div>
+        <div class="sp"></div>
+        <div class="sr"><div class="slb fw6">รวม</div><span class="sn snb">${tot}</span></div>
+        <div class="mbar"><div class="bg2" style="width:${pn}%"></div><div class="bo2" style="width:${pr}%"></div></div>
+      </div></div>`;
+  }).join("");
+}
+function renderStock(){ if(db) renderStockCards("stockSg", poleStock()); }
+
+function renderAncCard(containerId, qty){
+  document.getElementById(containerId).innerHTML = `<div class="ac-card" onclick="openAncDetail()">
+    <div class="ac-top"><div><div class="ac-name">⚓ ${db.anchor.name}</div><div class="ac-code">${db.anchor.code}</div></div><span class="ac-pill">${qty} ก้อน</span></div>
+    <div class="sc-body">
+      <div class="sr"><div class="slb"><span class="dot-t"></span>จำนวนคงเหลือ</div><span class="sn snt">${qty}</span></div>
+      <div class="sr"><span style="font-size:10px;color:var(--tx3);">รหัส</span><span class="fmono tte" style="font-size:10.5px;">${db.anchor.code}</span></div>
+    </div></div>`;
+}
+function renderAnchor(){ if(db) renderAncCard("anchorSg", ancStock()); }
+
+// ═══════════════════════════════════════════
+// GLOBAL SEARCH
+// ═══════════════════════════════════════════
+function renderGS(){
+  const q=(document.getElementById("gsInp").value||"").trim();
+  const ql=q.toLowerCase();
+  document.getElementById("gsClr").style.display=q?"block":"none";
+  document.getElementById("gsHints").style.display=q?"none":"flex";
+  const res=document.getElementById("gsResults");
+  if(!q){ res.style.display="none"; return; }
+
+  const poles=[]; const txg={};
+  Object.entries(db.poleReg).forEach(([pn,v])=>{
+    if(pn.toLowerCase().includes(ql)) poles.push({pn,v,score:pn.toLowerCase().startsWith(ql)?2:1});
+  });
+  db.transactions.forEach(t=>{
+    let m=false;
+    if((t.contractor||"").toLowerCase().includes(ql))m=true;
+    else if((t.wbs||"").toLowerCase().includes(ql))m=true;
+    else if((t.project||"").toLowerCase().includes(ql))m=true;
+    else if((t.size||"").includes(ql))m=true;
+    else if((t.poleNumbers||[]).some(p=>p.toLowerCase().includes(ql)))m=true;
+    if(m){
+      const k=(t.wbs||"")+"||"+(t.project||"")+"||"+(t.contractor||"");
+      if(!txg[k]) txg[k]={l:[],qi:0,qo:0,c:t.contractor||"",w:t.wbs||"",pr:t.project||""};
+      txg[k].l.push(t);
+      if(t.type==="in")txg[k].qi+=t.qty; else txg[k].qo+=t.qty;
+    }
+  });
+  const polesSorted=poles.sort((a,b)=>b.score-a.score).slice(0,10);
+  const groups=Object.values(txg).slice(0,8);
+
+  if(!polesSorted.length && !groups.length){
+    res.style.display="block";
+    res.innerHTML=`<div class="gs-results"><div class="gsr-empty">ไม่พบผลลัพธ์สำหรับ "${esc(q)}"</div></div>`;
+    return;
+  }
+
+  let html='<div class="gs-results">';
+  if(polesSorted.length){
+    html+=`<div class="gsr-hdr">หมายเลขเสา · ${polesSorted.length} ต้น</div>`;
+    polesSorted.forEach(r=>{
+      const isIn=r.v.status==="คงคลัง";
+      html+=`<div class="gsr-item" onclick="closeModal('mo-kd');showPH('${r.pn.replace(/'/g,"\\\\'")}')">
+        <div class="gsr-icon" style="background:${isIn?'var(--gd)':'var(--od)'}">${isIn?'📦':'📤'}</div>
+        <div class="gsr-main">
+          <div class="gsr-title"><span class="fmono">${hl(r.pn,q)}</span> ${isIn?badge('s'):badge('i')}</div>
+          <div class="gsr-sub">เสา ${r.v.size} ม. · รับ: ${r.v.dateIn}${!isIn?' · จ่าย: '+(r.v.dateOut||'—')+' · 👷 '+(r.v.contractor||'—'):''}</div>
+        </div></div>`;
+    });
+  }
+  if(groups.length){
+    html+=`<div class="gsr-hdr">โครงการ · ${groups.length} กลุ่ม</div>`;
+    groups.forEach(g=>{
+      // สรุปเสาแต่ละขนาด/แบท ในกลุ่มงานนี้
+      const bd={};
+      g.l.forEach(t=>{
+        const label = t.cat==="anchor" ? "ก้อนสมอ" : (t.size+" ม. แบท "+t.bat);
+        if(!bd[label]) bd[label]={in:0,out:0};
+        if(t.type==="in") bd[label].in+=t.qty; else bd[label].out+=t.qty;
+      });
+      const bdHtml = Object.entries(bd).map(([lb,v])=>{
+        const net = v.in - v.out;
+        return `<span class="bk-chip">${esc(lb)}: <b class="${net>=0?'tgn':'trd'}">${net>=0?'+':''}${net}</b></span>`;
+      }).join("");
+      html+=`<div class="gsr-item" onclick='openKDGroup(${JSON.stringify(g).replace(/'/g,"&#39;")})'>
+        <div class="gsr-icon" style="background:var(--ppd)">📋</div>
+        <div class="gsr-main">
+          <div class="gsr-title">${hl(g.pr||g.w||g.c||"ไม่ระบุ",q)}</div>
+          <div class="gsr-sub">${g.w?'<span class="fmono tbl">'+hl(g.w,q)+'</span> · ':''}${g.c?'👷 '+hl(g.c,q)+' · ':''}<span class="tgn">รับ +${g.qi}</span> · <span class="trd">จ่าย −${g.qo}</span></div>
+          <div class="bk-row">${bdHtml}</div>
+        </div></div>`;
+    });
+  }
+  html+='</div>';
+  res.style.display="block"; res.innerHTML=html;
+}
+function hl(text,q){
+  if(!q||!text) return esc(text||"");
+  return esc(text).replace(new RegExp("("+q.replace(/[.*+?^${}()|[\\]\\\\]/g,"\\\\$&")+")","gi"),'<span class="hl">$1</span>');
+}
+
+// ═══════════════════════════════════════════
+// POLE / ANCHOR DETAIL
+// ═══════════════════════════════════════════
+function openPoleDetail(sz){
+  const ps=poleStock(); const n=ps[sz].N, r=ps[sz].R;
+  const all=Object.entries(db.poleReg).filter(([,v])=>v.size===sz);
+  const inS=all.filter(([,v])=>v.status==="คงคลัง");
+  const outS=all.filter(([,v])=>v.status==="จ่ายออก");
+  const hist=db.transactions.filter(t=>t.cat==="pole"&&t.size===sz).reverse();
+
+  document.getElementById("pdTitle").textContent = `เสา ${sz} เมตร · ${db.poleCodes[sz]||"—"}`;
+  document.getElementById("pdBody").innerHTML = `
+    <div class="smg">
+      <div class="sm smg2"><div class="sml2">N คงคลัง</div><div class="smv2">${n}</div></div>
+      <div class="sm smo2"><div class="sml2">R คงคลัง</div><div class="smv2">${r}</div></div>
+      <div class="sm smb2"><div class="sml2">รวม</div><div class="smv2">${n+r}</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab act" onclick="dtab(this,'pt-n')">N คงคลัง (${inS.length})</button>
+      <button class="tab" onclick="dtab(this,'pt-out')">จ่ายออก (${outS.length})</button>
+      <button class="tab" onclick="dtab(this,'pt-hist')">ประวัติ</button>
+      <button class="tab" onclick="dtab(this,'pt-r')">แบท R</button>
+    </div>
+    <div id="pt-n" class="tab-pane act">${!inS.length?'<p style="text-align:center;padding:24px;color:var(--tx3);">ไม่มีเสาแบท N คงคลัง</p>':
+      '<div class="pdg">'+inS.map(([pn,v])=>`<div class="pdi ink" onclick="showPH('${pn.replace(/'/g,"\\\\'")}')"><div class="pdi-n">${pn}</div><div class="pdi-d">รับ: ${v.dateIn}${v.timeIn?' '+v.timeIn:''}</div></div>`).join('')+'</div>'}</div>
+    <div id="pt-out" class="tab-pane">${!outS.length?'<p style="text-align:center;padding:24px;color:var(--tx3);">ยังไม่มีเสาจ่ายออก</p>':
+      '<div class="pdg">'+outS.map(([pn,v])=>`<div class="pdi outk" onclick="showPH('${pn.replace(/'/g,"\\\\'")}')"><div class="pdi-n">${pn}</div><div class="pdi-d">รับ: ${v.dateIn}</div><div class="pdi-d">จ่าย: ${v.dateOut||'—'}</div><div class="pdi-c">${v.contractor||'—'}</div></div>`).join('')+'</div>'}</div>
+    <div id="pt-hist" class="tab-pane">${!hist.length?'<p style="text-align:center;padding:24px;color:var(--tx3);">ยังไม่มีประวัติ</p>':
+      '<div class="tw">'+hist.map(t=>`<div class="hi"><div class="hd2 ${t.type==='in'?'hd-in':'hd-out'}"></div><div class="hb"><span class="fw6">${t.type==='in'?'รับเข้า':'จ่ายออก'}</span> แบท ${t.bat} <span class="fw6">${t.qty} ต้น</span>${t.poleNumbers&&t.poleNumbers.length?' <span style="font-size:10.5px;color:var(--tx2);">['+t.poleNumbers.slice(0,5).join(', ')+(t.poleNumbers.length>5?'…':'')+']</span>':''}<div class="hm">${t.date} ${t.time} · ${t.contractor||'—'} · ${t.project||'—'} · WBS: ${t.wbs||'—'} · บันทึกโดย: ${t.user||'—'}</div></div></div>`).join('')+'</div>'}</div>
+    <div id="pt-r" class="tab-pane">
+      <div style="padding:12px;background:var(--bg2);border-radius:var(--rad2);margin-bottom:11px;">แบท R คงคลัง: <span class="tor fw7" style="font-size:20px;">${r} ต้น</span></div>
+      <div class="tw">${db.transactions.filter(t=>t.cat==="pole"&&t.size===sz&&t.bat==="R").reverse().map(t=>`<div class="hi"><div class="hd2 ${t.type==='in'?'hd-in':'hd-out'}"></div><div class="hb"><span class="fw6">${t.type==='in'?'รับเข้า':'จ่ายออก'}</span> ${t.qty} ต้น<div class="hm">${t.date} · ${t.contractor||'—'} · ${t.note||'—'}</div></div></div>`).join('')||'<div style="padding:18px;text-align:center;color:var(--tx3);">ยังไม่มีรายการ</div>'}</div>
+    </div>`;
+  openModal("mo-pd");
+}
+function dtab(btn,id){
+  const parent=btn.closest(".mb");
+  parent.querySelectorAll(".tab-pane").forEach(t=>t.classList.remove("act"));
+  parent.querySelectorAll(".tab").forEach(t=>t.classList.remove("act"));
+  document.getElementById(id).classList.add("act");
+  btn.classList.add("act");
+}
+
+function openAncDetail(){
+  const hist=[...db.transactions.filter(t=>t.cat==="anchor")].reverse();
+  const as=ancStock();
+  const ti=hist.filter(t=>t.type==="in").reduce((s,t)=>s+t.qty,0);
+  const to=hist.filter(t=>t.type==="out").reduce((s,t)=>s+t.qty,0);
+  document.getElementById("adTitle").textContent = `⚓ ${db.anchor.name}`;
+  document.getElementById("adBody").innerHTML = `
+    <div class="smg">
+      <div class="sm smt2"><div class="sml2">คงเหลือ</div><div class="smv2">${as}</div></div>
+      <div class="sm smg2"><div class="sml2">รับเข้ารวม</div><div class="smv2">${ti}</div></div>
+      <div class="sm smr2"><div class="sml2">จ่ายออกรวม</div><div class="smv2">${to}</div></div>
+    </div>
+    <div style="font-size:11px;color:var(--tx3);margin-bottom:12px;">รหัสพัสดุ: <span class="fmono tte">${db.anchor.code}</span></div>
+    <div class="tw">${!hist.length?'<div style="padding:24px;text-align:center;color:var(--tx3);">ยังไม่มีรายการ</div>':
+      hist.map(t=>`<div class="hi"><div class="hd2 ${t.type==='in'?'hd-in':'hd-out'}"></div><div class="hb"><span class="fw6">${t.type==='in'?'รับเข้า':'จ่ายออก'}</span> <span class="tte fw7">${t.qty} ก้อน</span><div class="hm">${t.date} ${t.time} · ${t.contractor||'—'} · ${t.project||'—'} · WBS: ${t.wbs||'—'}</div></div></div>`).join('')}</div>`;
+  openModal("mo-ad");
+}
+
+function showPH(pn){
+  const v=db.poleReg[pn];
+  document.getElementById("phTitle").innerHTML = `<span class="fmono">${esc(pn)}</span> · ประวัติเสา`;
+  if(!v){ document.getElementById("phBody").innerHTML='<p style="color:var(--tx3);padding:20px;text-align:center;">ไม่พบหมายเลขนี้</p>'; openModal("mo-ph"); return; }
+  const isOut=v.status==="จ่ายออก";
+  const hist=db.transactions.filter(t=>t.cat==="pole"&&(t.poleNumbers||[]).includes(pn)).reverse();
+  document.getElementById("phBody").innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:14px;border-radius:var(--rad);background:${isOut?'var(--od)':'var(--gd)'};border:1px solid ${isOut?'rgba(255,179,64,.35)':'rgba(0,229,160,.35)'};">
+      <div style="font-size:28px;">${isOut?'📤':'📦'}</div>
+      <div><div style="font-size:15px;font-weight:700;color:${isOut?'var(--or)':'var(--gn)'};">${isOut?'เสาต้นนี้ถูกจ่ายออกแล้ว — ไม่สามารถจ่ายซ้ำได้':'เสาต้นนี้อยู่ในคลัง'}</div>
+      <div style="font-size:11.5px;color:var(--tx2);margin-top:2px;">เสา ${v.size} ม. · รหัส ${db.poleCodes[v.size]||'—'}</div></div>
+    </div>
+    <div class="lifecycle">
+      <div class="lc-step"><div class="lc-dot lc-in"></div><div class="lc-body"><div class="lc-t">📥 รับเข้าคลัง</div><div class="lc-m">${v.dateIn}${v.timeIn?' · '+v.timeIn+' น.':''}</div></div></div>
+      <div class="lc-line ${isOut?'done':''}"></div>
+      <div class="lc-step ${isOut?'':'pend'}"><div class="lc-dot ${isOut?'lc-out':'lc-wait'}"></div>
+        <div class="lc-body"><div class="lc-t">${isOut?'📤 จ่ายออก':'⏳ รอจ่ายออก'}</div>
+          ${isOut?`<div class="lc-m">${v.dateOut}${v.timeOut?' · '+v.timeOut+' น.':''}</div><div class="lc-m">👷 ${v.contractor||'—'}</div>${v.wbs?'<div class="lc-m fmono" style="color:var(--pp);">'+v.wbs+'</div>':''}${v.project?'<div class="lc-m">📁 '+v.project+'</div>':''}`:'<div class="lc-m">ยังอยู่ในคลัง</div>'}
+        </div>
+      </div>
+    </div>
+    ${hist.length?`<div style="font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px;">ธุรกรรมที่เกี่ยวข้อง</div>
+    <div class="tw">${hist.map(t=>`<div class="hi"><div class="hd2 ${t.type==='in'?'hd-in':'hd-out'}"></div><div class="hb"><span class="fw6">${t.type==='in'?'รับเข้า':'จ่ายออก'}</span> · #${t.id}<div class="hm">${t.date} ${t.time} · ${t.contractor||'—'} · ${t.project||'—'} · WBS: ${t.wbs||'—'} · บันทึกโดย: ${t.user||'—'}</div></div></div>`).join('')}</div>`:''}
+  `;
+  openModal("mo-ph");
+}
+
+// ═══════════════════════════════════════════
+// KPI DETAIL
+// ═══════════════════════════════════════════
+function openKD(k){
+  const ps=poleStock();
+  let title="", html="";
+  if(k==="total"){
+    title="สรุปสต็อกเสาทุกขนาด";
+    html=`<div class="tw"><div class="tsc"><table><thead><tr><th>ขนาด</th><th>รหัสพัสดุ</th><th>N</th><th>R</th><th>รวม</th></tr></thead><tbody>${
+      SZ.map(z=>`<tr><td class="mono fw6">${z} ม.</td><td class="mono ttd">${db.poleCodes[z]||'—'}</td><td class="tgn fw6">${ps[z].N}</td><td class="tor fw6">${ps[z].R}</td><td class="tbl fw7">${ps[z].N+ps[z].R}</td></tr>`).join('')
+    }</tbody></table></div></div>`;
+  } else if(k==="N"){
+    title="แบท N ทั้งหมดในคลัง";
+    const poles=Object.entries(db.poleReg).filter(([,v])=>v.status==="คงคลัง");
+    if(!poles.length){ html='<p style="text-align:center;padding:28px;color:var(--tx3);">ไม่มีเสาแบท N คงคลัง</p>'; }
+    else {
+      const by={}; SZ.forEach(z=>by[z]=[]);
+      poles.forEach(([pn,v])=>{if(by[v.size])by[v.size].push(pn);});
+      html=SZ.map(z=>by[z].length?`<div style="margin-bottom:13px;"><div style="font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:5px;">${z} ม. — ${by[z].length} ต้น</div><div class="pdg">${by[z].map(pn=>`<div class="pdi ink" onclick="showPH('${pn.replace(/'/g,"\\\\'")}')"><div class="pdi-n">${pn}</div><div class="pdi-d">รับ: ${db.poleReg[pn].dateIn}${db.poleReg[pn].timeIn?' '+db.poleReg[pn].timeIn:''}</div></div>`).join('')}</div></div>`:'').join('');
+    }
+  } else if(k==="R"){
+    title="แบท R คงคลัง แยกขนาด";
+    html=`<div class="tw"><div class="tsc"><table><thead><tr><th>ขนาด</th><th>คงเหลือ</th></tr></thead><tbody>${SZ.map(z=>`<tr><td class="mono fw6">${z} ม.</td><td class="tor fw7" style="font-size:18px;">${ps[z].R}</td></tr>`).join('')}</tbody></table></div></div>`;
+  } else if(k==="in"||k==="out"){
+    title = k==="in"?"รับเข้าล่าสุด 30 รายการ":"จ่ายออกล่าสุด 30 รายการ";
+    const txs=db.transactions.filter(t=>t.type===k).slice(-30).reverse();
+    html=mtTable(txs);
+  }
+  document.getElementById("kdTitle").textContent=title;
+  document.getElementById("kdBody").innerHTML=html;
+  openModal("mo-kd");
+}
+function openKDGroup(g){
+  document.getElementById("kdTitle").textContent = "📋 "+(g.pr||g.w||"โครงการ");
+  const txs=db.transactions.filter(t=>(t.wbs||"")===(g.w||"")&&(t.project||"")===(g.pr||"")&&(t.contractor||"")===(g.c||"")).reverse();
+
+  // สรุปเสาแต่ละขนาด/แบท ในงานนี้
+  const bd={};
+  txs.forEach(t=>{
+    const label = t.cat==="anchor" ? "ก้อนสมอ" : (t.size+" ม. · แบท "+t.bat);
+    if(!bd[label]) bd[label]={in:0,out:0};
+    if(t.type==="in") bd[label].in+=t.qty; else bd[label].out+=t.qty;
+  });
+  const bdHtml = Object.entries(bd).map(([lb,v])=>
+    `<div class="bk-line"><span class="bk-name">${esc(lb)}</span><span class="bk-nums"><span class="tgn">รับ +${v.in}</span> · <span class="trd">จ่าย −${v.out}</span> · <b>คงเหลือ ${v.in-v.out}</b></span></div>`
+  ).join("");
+
+  document.getElementById("kdBody").innerHTML = `
+    <div class="smg">
+      <div class="sm smb2"><div class="sml2">รายการ</div><div class="smv2">${txs.length}</div></div>
+      <div class="sm smg2"><div class="sml2">รับเข้า</div><div class="smv2">${txs.filter(t=>t.type==='in').reduce((s,t)=>s+t.qty,0)}</div></div>
+      <div class="sm smr2"><div class="sml2">จ่ายออก</div><div class="smv2">${txs.filter(t=>t.type==='out').reduce((s,t)=>s+t.qty,0)}</div></div>
+    </div>
+    ${bdHtml?`<div class="bk-summary"><div class="bk-sum-hdr">สรุปเสาในงานนี้</div>${bdHtml}</div>`:""}
+    <div class="sl2" style="margin-top:16px;">รายการธุรกรรม · คลิกแถวที่มี 🔢 เพื่อดูหมายเลขเสา</div>
+    ${mtTable(txs)}` ;
+  openModal("mo-kd");
+}
+function mtTable(txs){
+  if(!txs.length) return '<p style="text-align:center;padding:28px;color:var(--tx3);">ไม่มีรายการ</p>';
+  return `<div class="tw"><div class="tsc"><table><thead><tr><th>วันที่</th><th>ประเภท</th><th>สินค้า</th><th>แบท</th><th>จำนวน</th><th>หมายเลขเสา</th><th>ผู้รับจ้าง</th></tr></thead><tbody>${
+    txs.map((t,i)=>{
+      const hasPns = t.cat==="pole" && t.bat==="N" && t.poleNumbers && t.poleNumbers.length;
+      const rowId = "mtrow-"+i;
+      const clickAttr = hasPns ? `onclick="toggleMtPns('${rowId}')" style="cursor:pointer;"` : "";
+      const expandIcon = hasPns ? '🔢 ' : '';
+      const pnsCell = hasPns
+        ? `<span class="mt-pn-toggle">${expandIcon}${t.poleNumbers.length} ต้น ▾</span>`
+        : (t.cat==="anchor" ? "ก้อนสมอ" : '<span class="ttd">— (แบท R)</span>');
+      const codeStr = t.cat==="anchor" ? db.anchor.code : (db.poleCodes[t.size]||"—");
+      let mainRow = `<tr ${clickAttr}>
+        <td class="mono">${t.date}<div class="ttd" style="font-size:9px;">${t.time||""}</div></td>
+        <td>${badge(t.type)}</td>
+        <td class="mono fw6">${t.cat==='anchor'?'ก้อนสมอ':t.size+' ม.'}<div class="ttd mono" style="font-size:9px;">${codeStr}</div></td>
+        <td>${t.cat==='anchor'?badge('te'):badge(t.bat)}</td>
+        <td class="fw7 ${t.type==='in'?'tgn':'trd'}">${t.type==='in'?'+':'−'}${t.qty}</td>
+        <td>${pnsCell}</td>
+        <td style="font-size:11px;">${t.contractor||'—'}</td>
+      </tr>`;
+      // แถวซ่อนแสดงหมายเลขเสา (คลิกแต่ละต้นดูประวัติเต็มได้)
+      if(hasPns){
+        const pnChips = t.poleNumbers.map(pn=>
+          `<span class="pnt" style="cursor:pointer;" onclick="event.stopPropagation();showPH('${pn.replace(/'/g,"\\\\'")}')">${esc(pn)}</span>`
+        ).join("");
+        mainRow += `<tr id="${rowId}" class="mt-pn-row" style="display:none;"><td colspan="7" style="background:var(--bg2);padding:12px 14px;">
+          <div class="mt-pn-hdr">หมายเลขเสาที่${t.type==='in'?'รับเข้า':'จ่ายออก'} (${t.poleNumbers.length} ต้น) · แตะแต่ละต้นเพื่อดูประวัติเต็ม</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;">${pnChips}</div>
+        </td></tr>`;
+      }
+      return mainRow;
+    }).join('')
+  }</tbody></table></div></div>`;
+}
+function toggleMtPns(rowId){
+  const row=document.getElementById(rowId);
+  if(row) row.style.display = row.style.display==="none" ? "table-row" : "none";
+}
+
+// ═══════════════════════════════════════════
+// TX FORM
+// ═══════════════════════════════════════════
+function openTx(type="in", c="pole"){
+  resetTxForm();
+  txType=type; cat=c;
+  document.getElementById("txDate").value = new Date().toISOString().slice(0,10);
+  applyTxUIState();
+  openModal("mo-tx");
+}
+function resetTxForm(){
+  pns=[]; txType="in"; bat="N"; cat="pole";
+  ["txSize","txCode","pnInp","txContr","txWbs","txProj","txNote","txUser"].forEach(id=>{const e=document.getElementById(id); if(e) e.value="";});
+  document.getElementById("txQty").value="1";
+  document.getElementById("txAQty").value="1";
+  ["rFrom","rTo"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("rPad").value="0";
+  document.getElementById("rngPrev").textContent="ตัวอย่าง: กรอกข้อมูลด้านบน";
+  document.getElementById("txAlert").style.display="none";
+  renderPNs();
+}
+function applyTxUIState(){
+  document.getElementById("catPole").className = "sb"+(cat==="pole"?" og":"");
+  document.getElementById("catAnchor").className = "sb"+(cat==="anchor"?" oo":"");
+  document.getElementById("poleSection").style.display = cat==="pole"?"contents":"none";
+  document.getElementById("ancSection").style.display = cat==="anchor"?"block":"none";
+  document.getElementById("txIn").className = "sb"+(txType==="in"?" og":"");
+  document.getElementById("txOut").className = "sb"+(txType==="out"?" or2":"");
+  document.getElementById("moTxTitle").textContent = txType==="in"?"📥 รับเข้าคลัง":"📤 จ่ายออก";
+  document.getElementById("batN").className = "sb"+(bat==="N"?" og":"");
+  document.getElementById("batR").className = "sb"+(bat==="R"?" oo":"");
+  document.getElementById("pnsSec").style.display = bat==="N"?"block":"none";
+  document.getElementById("qtySec").style.display = bat==="R"?"block":"none";
+
+  // logic การแสดงช่องโครงการ:
+  // - จ่ายออก → โชว์ครบ (ผู้รับจ้าง + WBS + ชื่องาน)
+  // - รับเข้า + เสาแบท R → โชว์ WBS + ชื่องาน (track ว่าเสา R มาจากงานไหน) ไม่ต้องมีผู้รับจ้าง
+  // - รับเข้า + เสาแบท N / ก้อนสมอ → ซ่อนทั้งหมด
+  const isOut = txType==="out";
+  const isReceiveR = txType==="in" && cat==="pole" && bat==="R";
+  const showSection = isOut || isReceiveR;
+  document.getElementById("projSection").style.display = showSection?"contents":"none";
+  if(showSection){
+    // ช่องผู้รับจ้าง โชว์เฉพาะตอนจ่ายออก
+    document.getElementById("contrField").style.display = isOut?"flex":"none";
+    document.getElementById("wbsField").style.display = "flex";
+    document.getElementById("projField").style.display = "flex";
+    document.getElementById("projSectLabel").textContent = isOut
+      ? "รายละเอียดโครงการ (จ่ายออก)"
+      : "ระบุงานที่มาของเสาแบท R (เพื่อค้นหาภายหลัง)";
+  }
+}
+function setCat(c){ cat=c; applyTxUIState(); if(c==="anchor") document.getElementById("txCode").value=""; }
+function setTxType(t){ txType=t; applyTxUIState(); }
+function setBat(b){ bat=b; applyTxUIState(); }
+function updCode(){ const z=document.getElementById("txSize").value; document.getElementById("txCode").value = z?(db.poleCodes[z]||""):""; }
+function chQ(d){ const e=document.getElementById("txQty"); e.value=Math.max(1,(parseInt(e.value)||1)+d); }
+function chAQ(d){ const e=document.getElementById("txAQty"); e.value=Math.max(1,(parseInt(e.value)||1)+d); }
+
+function addPN(){
+  const inp=document.getElementById("pnInp");
+  const v=inp.value.trim(); if(!v) return;
+  if(pns.includes(v)){ toast("หมายเลขซ้ำ: "+v,"er"); return; }
+  const sz=document.getElementById("txSize").value;
+  if(cat==="pole" && bat==="N"){
+    if(txType==="out"){
+      if(!db.poleReg[v]){ toast("⚠ "+v+" ไม่มีในสต็อก","er"); return; }
+      if(db.poleReg[v].status!=="คงคลัง"){ closeModal("mo-tx"); showPH(v); return; }
+      if(sz && db.poleReg[v].size!==sz){ toast("⚠ "+v+" เป็นเสา "+db.poleReg[v].size+" ม.","er"); return; }
+    } else {
+      if(db.poleReg[v]){
+        if(db.poleReg[v].status==="คงคลัง"){ toast("⚠ "+v+" มีในสต็อกแล้ว","er"); return; }
+        closeModal("mo-tx"); showPH(v); return;
+      }
+    }
+  }
+  pns.push(v); inp.value=""; renderPNs();
+}
+function renderPNs(){
+  document.getElementById("pnCount").textContent = pns.length;
+  const el=document.getElementById("pnList");
+  el.innerHTML = !pns.length ? '<span style="color:var(--tx3);font-size:11px;">ยังไม่ได้เพิ่มหมายเลข</span>'
+    : pns.map(p=>`<span class="pnt" onclick="rmPN('${p.replace(/'/g,"\\\\'")}')">${esc(p)} ✕</span>`).join("");
+}
+function rmPN(p){ pns=pns.filter(x=>x!==p); renderPNs(); }
+
+function prvRng(){
+  const f=parseInt(document.getElementById("rFrom").value), t=parseInt(document.getElementById("rTo").value), pd=parseInt(document.getElementById("rPad").value)||0;
+  const el=document.getElementById("rngPrev");
+  if(isNaN(f)||isNaN(t)){ el.textContent="ตัวอย่าง: กรอกข้อมูลด้านบน"; return; }
+  if(t<f){ el.textContent="⚠ ตัวเลขสิ้นสุดต้องมากกว่าตัวเลขเริ่มต้น"; return; }
+  const cnt=t-f+1, smp=[];
+  for(let i=f;i<=Math.min(f+5,t);i++) smp.push(pd>0?String(i).padStart(pd,"0"):String(i));
+  el.textContent = smp.join(", ")+(cnt>6?" … "+(pd>0?String(t).padStart(pd,"0"):String(t)):"")+"  (รวม "+cnt+")";
+}
+function addRange(){
+  const f=parseInt(document.getElementById("rFrom").value), t=parseInt(document.getElementById("rTo").value), pd=parseInt(document.getElementById("rPad").value)||0;
+  if(isNaN(f)||isNaN(t)||t<f){ toast("กรอกช่วงหมายเลขให้ถูกต้อง","er"); return; }
+  if(t-f+1>500){ toast("สูงสุด 500 หมายเลข","er"); return; }
+  const sz=document.getElementById("txSize").value;
+  let added=0, skip=0;
+  for(let i=f;i<=t;i++){
+    const p = pd>0?String(i).padStart(pd,"0"):String(i);
+    if(pns.includes(p)) continue;
+    if(cat==="pole" && bat==="N"){
+      if(txType==="out"){ if(!db.poleReg[p]||db.poleReg[p].status!=="คงคลัง"){ skip++; continue; } }
+      else { if(db.poleReg[p]){ skip++; continue; } }
+    }
+    pns.push(p); added++;
+  }
+  renderPNs();
+  if(skip) toast("ข้าม "+skip+" หมายเลข","wn");
+  if(added) toast("เพิ่ม "+added+" หมายเลข ("+f+"–"+t+")","ok");
+}
+function doImport(){
+  const txt=document.getElementById("impTxt").value;
+  const nums=txt.split(/[\\n,\\s]+/).map(s=>s.trim()).filter(Boolean);
+  let added=0, skip=0;
+  nums.forEach(n=>{
+    if(pns.includes(n)) return;
+    if(cat==="pole" && bat==="N"){
+      if(txType==="out"){ if(!db.poleReg[n]||db.poleReg[n].status!=="คงคลัง"){ skip++; return; } }
+      else { if(db.poleReg[n]){ skip++; return; } }
+    }
+    pns.push(n); added++;
+  });
+  renderPNs(); document.getElementById("impTxt").value=""; closeModal("mo-imp"); openModal("mo-tx");
+  if(skip) toast("ข้าม "+skip+" หมายเลข","wn");
+  if(added) toast("นำเข้า "+added+" หมายเลข","ok");
+}
+
+// autocomplete WBS / Project
+function getSugs(){
+  const seen=new Set(), list=[];
+  db.transactions.forEach(t=>{
+    const k=(t.wbs||"")+"##"+(t.project||"");
+    if((t.wbs||t.project) && !seen.has(k)){ seen.add(k); list.push({wbs:t.wbs||"",project:t.project||"",contractor:t.contractor||""}); }
+  });
+  return list;
+}
+function acWbs(v){
+  const list=v?getSugs().filter(p=>p.wbs.toLowerCase().includes(v.toLowerCase())).slice(0,5):[];
+  const el=document.getElementById("wbsAC");
+  el.innerHTML = list.map(p=>`<div class="ac-item" onmousedown="fillProj('${p.wbs.replace(/'/g,"\\\\'")}','${p.project.replace(/'/g,"\\\\'")}')"><div class="ac-num">${esc(p.wbs)}</div><div class="ac-det">${esc(p.project)}${p.contractor?' · '+esc(p.contractor):''}</div></div>`).join("");
+  el.className = "ac-list"+(list.length?" show":"");
+}
+function acProj(v){
+  const list=v?getSugs().filter(p=>p.project.toLowerCase().includes(v.toLowerCase())).slice(0,5):[];
+  const el=document.getElementById("prjAC");
+  el.innerHTML = list.map(p=>`<div class="ac-item" onmousedown="fillProj('${p.wbs.replace(/'/g,"\\\\'")}','${p.project.replace(/'/g,"\\\\'")}')"><div class="ac-num">${esc(p.project)}</div><div class="ac-det">${p.wbs?'WBS: '+esc(p.wbs):''}${p.contractor?' · '+esc(p.contractor):''}</div></div>`).join("");
+  el.className = "ac-list"+(list.length?" show":"");
+}
+function fillProj(w,p){ document.getElementById("txWbs").value=w; document.getElementById("txProj").value=p; hideAc("wbsAC"); hideAc("prjAC"); }
+function hideAc(id){ document.getElementById(id).className="ac-list"; }
+
+// รวบรวมรายชื่อผู้บันทึกที่เคยพิมพ์ (จากธุรกรรมเดิม) — ใหม่ล่าสุดอยู่บน
+function getSavedUsers(){
+  if(!db || !db.transactions) return [];
+  const seen=[];
+  for(let i=db.transactions.length-1;i>=0;i--){
+    const u=(db.transactions[i].user||"").trim();
+    if(u && !seen.includes(u)) seen.push(u);
+  }
+  return seen;
+}
+function acUser(v){
+  const all=getSavedUsers();
+  const q=(v||"").toLowerCase().trim();
+  const list=(q ? all.filter(u=>u.toLowerCase().includes(q)) : all).slice(0,6);
+  const el=document.getElementById("userAC");
+  if(!el) return;
+  el.innerHTML = list.map(u=>`<div class="ac-item" onmousedown="fillUser('${u.replace(/'/g,"\\\\'")}')"><div class="ac-num">👤 ${esc(u)}</div></div>`).join("");
+  el.className = "ac-list"+(list.length?" show":"");
+}
+function fillUser(u){ document.getElementById("txUser").value=u; hideAc("userAC"); }
+
+// รวบรวมค่าที่ไม่ซ้ำจากธุรกรรม (field ใดก็ได้) — ใหม่ล่าสุดอยู่บน
+function getSavedField(field){
+  if(!db || !db.transactions) return [];
+  const seen=[];
+  for(let i=db.transactions.length-1;i>=0;i--){
+    const val=(db.transactions[i][field]||"").trim();
+    if(val && !seen.includes(val)) seen.push(val);
+  }
+  return seen;
+}
+
+// ผู้รับจ้าง: รวมจากรายชื่อตั้งต้น (db.contractors) + ที่เคยพิมพ์ในธุรกรรม
+function getAllContractors(){
+  const fromList = (db && db.contractors) ? db.contractors.slice() : [];
+  const fromTx = getSavedField("contractor");
+  const merged=[];
+  fromList.concat(fromTx).forEach(c=>{ const v=(c||"").trim(); if(v && !merged.includes(v)) merged.push(v); });
+  return merged;
+}
+function acContr(v){
+  const all=getAllContractors();
+  const q=(v||"").toLowerCase().trim();
+  const list=(q ? all.filter(c=>c.toLowerCase().includes(q)) : all).slice(0,7);
+  const el=document.getElementById("contrAC");
+  if(!el) return;
+  el.innerHTML = list.map(c=>`<div class="ac-item" onmousedown="fillContr('${c.replace(/'/g,"\\\\'")}')"><div class="ac-num">👷 ${esc(c)}</div></div>`).join("");
+  el.className = "ac-list"+(list.length?" show":"");
+}
+function fillContr(c){ document.getElementById("txContr").value=c; hideAc("contrAC"); }
+
+function acNote(v){
+  const all=getSavedField("note");
+  const q=(v||"").toLowerCase().trim();
+  const list=(q ? all.filter(n=>n.toLowerCase().includes(q)) : all).slice(0,6);
+  const el=document.getElementById("noteAC");
+  if(!el) return;
+  el.innerHTML = list.map(n=>`<div class="ac-item" onmousedown="fillNote('${n.replace(/'/g,"\\\\'")}')"><div class="ac-det">📝 ${esc(n)}</div></div>`).join("");
+  el.className = "ac-list"+(list.length?" show":"");
+}
+function fillNote(n){ document.getElementById("txNote").value=n; hideAc("noteAC"); }
+
+function updateContrDL(){ /* เปลี่ยนเป็น autocomplete dropdown แล้ว ไม่ใช้ datalist */ }
+
+function submitTx(){
+  const date=document.getElementById("txDate").value;
+  if(!date){ showAl("โปรดระบุวันที่"); return; }
+  const now=nowTH();
+  const contractor=document.getElementById("txContr").value.trim();
+  const wbs=document.getElementById("txWbs").value.trim();
+  const project=document.getElementById("txProj").value.trim();
+  const note=document.getElementById("txNote").value.trim();
+  const user=document.getElementById("txUser").value.trim();
+  if(txType==="out" && !contractor && !project && !wbs){ showAl("จ่ายออกต้องระบุข้อมูลโครงการ: ผู้รับจ้าง หรือ WBS/PM หรือ ชื่องาน อย่างน้อย 1 อย่าง"); return; }
+  const base={date,time:now.time,datetime:now.iso,contractor,wbs,project,note,user};
+
+  if(cat==="pole"){
+    const size=document.getElementById("txSize").value;
+    if(!size){ showAl("โปรดเลือกขนาดเสา"); return; }
+    const ps=poleStock();
+    const qty = bat==="N" ? pns.length : (parseInt(document.getElementById("txQty").value)||1);
+    if(bat==="N" && qty===0){ showAl("กรุณาเพิ่มหมายเลขเสา"); return; }
+    if(txType==="out"){
+      const av=ps[size][bat]||0;
+      if(qty>av){ showAl("สต็อกไม่เพียงพอ แบท "+bat+" "+size+" ม. คงเหลือ "+av+" ต้น"); return; }
+      if(bat==="N"){
+        for(const p of pns){
+          if(!db.poleReg[p]){ showAl("ไม่พบหมายเลข "+p+" ในสต็อก"); return; }
+          if(db.poleReg[p].status!=="คงคลัง"){ showAl("หมายเลข "+p+" ถูกจ่ายออกไปแล้ว"); return; }
+          if(db.poleReg[p].size!==size){ showAl("หมายเลข "+p+" ไม่ใช่ขนาด "+size+" ม."); return; }
+        }
+      }
+    } else if(bat==="N"){
+      for(const p of pns){ if(db.poleReg[p]){ showAl("หมายเลข "+p+" มีอยู่ในระบบแล้ว"); return; } }
+    }
+    const tx={id:db.nextId++, cat:"pole", type:txType, size, bat, qty, poleNumbers: bat==="N"?[...pns]:[], ...base};
+    db.transactions.push(tx);
+    if(bat==="N"){
+      pns.forEach(p=>{
+        if(txType==="in") db.poleReg[p]={size,dateIn:date,timeIn:now.time,status:"คงคลัง",dateOut:"",timeOut:"",contractor:"",project:"",wbs:""};
+        else db.poleReg[p]={...db.poleReg[p],status:"จ่ายออก",dateOut:date,timeOut:now.time,contractor,project,wbs};
+      });
+    }
+    db.auditLog.unshift({id:Date.now(),action:(txType==="in"?"รับเข้า":"จ่ายออก")+" แบท "+bat+" เสา "+size+" ม. "+qty+" ต้น",user:user||"—",time:now.time,date});
+  } else {
+    const qty=parseInt(document.getElementById("txAQty").value)||1;
+    if(txType==="out" && qty>ancStock()){ showAl("สต็อกก้อนสมอไม่เพียงพอ คงเหลือ "+ancStock()+" ก้อน"); return; }
+    db.transactions.push({id:db.nextId++, cat:"anchor", type:txType, qty, ...base});
+    db.auditLog.unshift({id:Date.now(),action:(txType==="in"?"รับเข้า":"จ่ายออก")+" ก้อนสมอ "+qty+" ก้อน",user:user||"—",time:now.time,date});
+  }
+  if(db.auditLog.length>500) db.auditLog=db.auditLog.slice(0,500);
+  // จดจำผู้รับจ้างใหม่อัตโนมัติ (ถ้าพิมพ์ชื่อที่ยังไม่มีในรายการ)
+  if(contractor && !db.contractors.includes(contractor)){
+    db.contractors.push(contractor);
+  }
+  persist();
+  closeModal("mo-tx");
+  renderAll();
+  toast("✓ บันทึกสำเร็จ — ซิงค์ขึ้นคลาวด์แล้ว","ok");
+}
+function showAl(msg){ const e=document.getElementById("txAlert"); e.style.display="flex"; e.textContent="⚠ "+msg; }
+
+function delTx(id){
+  if(!confirm("ลบรายการ #"+id+"?")) return;
+  const t=db.transactions.find(x=>x.id===id); if(!t) return;
+  if(t.cat==="pole" && t.bat==="N" && t.poleNumbers){
+    if(t.type==="in") t.poleNumbers.forEach(pn=>delete db.poleReg[pn]);
+    else t.poleNumbers.forEach(pn=>{ if(db.poleReg[pn]) db.poleReg[pn]={...db.poleReg[pn],status:"คงคลัง",dateOut:"",timeOut:"",contractor:"",project:"",wbs:""}; });
+  }
+  db.transactions=db.transactions.filter(x=>x.id!==id);
+  const now=nowTH();
+  db.auditLog.unshift({id:Date.now(),action:"ลบรายการ #"+id,user:"—",time:now.time,date:now.date});
+  persist(); renderAll(); toast("ลบรายการแล้ว","in");
+}
+
+// ═══════════════════════════════════════════
+// TRANSACTION TABLE
+// ═══════════════════════════════════════════
+function fTxn(f,el){
+  txnFilt=f;
+  document.querySelectorAll("#txnChips .chip").forEach(c=>c.classList.remove("act"));
+  if(el) el.classList.add("act");
+  renderTxn();
+}
+function renderTxn(){
+  if(!db) return;
+  const q=(document.getElementById("txnSearch")?.value||"").toLowerCase();
+  let d=[...db.transactions].reverse();
+  if(txnFilt==="in") d=d.filter(t=>t.type==="in");
+  else if(txnFilt==="out") d=d.filter(t=>t.type==="out");
+  else if(txnFilt==="N") d=d.filter(t=>t.bat==="N");
+  else if(txnFilt==="R") d=d.filter(t=>t.bat==="R");
+  else if(txnFilt==="anchor") d=d.filter(t=>t.cat==="anchor");
+  if(q) d=d.filter(t=>(t.contractor||"").toLowerCase().includes(q)||(t.wbs||"").toLowerCase().includes(q)||(t.project||"").toLowerCase().includes(q)||(t.size||"").includes(q)||(t.poleNumbers||[]).some(p=>p.toLowerCase().includes(q)));
+  document.getElementById("txnCount").textContent=d.length+" รายการ";
+  document.getElementById("txnCnt2").textContent=d.length+" รายการ";
+  const b=document.getElementById("txnBody");
+  if(!d.length){ b.innerHTML='<tr class="er"><td colspan="15">ไม่พบรายการ</td></tr>'; return; }
+  b.innerHTML = d.map(t=>{
+    const pnsHtml=(t.poleNumbers||[]).slice(0,3).map(p=>`<span class="pnt" style="cursor:pointer;" onclick="showPH('${p.replace(/'/g,"\\\\'")}')">${esc(p)}</span>`).join("");
+    const more=(t.poleNumbers||[]).length>3?`<span style="font-size:9.5px;color:var(--tx3);">+${t.poleNumbers.length-3}</span>`:"";
+    return `<tr>
+      <td class="ttd" style="font-size:9.5px;">${t.id}</td>
+      <td class="mono">${t.date}</td><td class="mono" style="font-size:10.5px;">${t.time}</td>
+      <td>${badge(t.type)}</td>
+      <td class="mono fw6">${t.cat==="anchor"?"ก้อนสมอ":t.size+" ม."}</td>
+      <td class="mono ttd" style="font-size:10px;">${t.cat==="anchor"?db.anchor.code:(db.poleCodes[t.size]||"—")}</td>
+      <td>${t.cat==="anchor"?badge("te"):badge(t.bat)}</td>
+      <td class="fw7 ${t.type==='in'?'tgn':'trd'}">${t.type==='in'?'+':'−'}${t.qty}</td>
+      <td style="display:flex;flex-wrap:wrap;gap:3px;">${pnsHtml}${more}</td>
+      <td>${t.contractor||"—"}</td>
+      <td class="mono" style="font-size:10.5px;">${t.wbs||"—"}</td>
+      <td style="font-size:11px;">${t.project||"—"}</td>
+      <td style="font-size:10.5px;color:var(--tx3);">${t.note||"—"}</td>
+      <td style="font-size:10.5px;color:var(--tx3);">${t.user||"—"}</td>
+      <td><button class="btn btn-rd btn-xs" onclick="delTx(${t.id})">ลบ</button></td>
+    </tr>`;
+  }).join("");
+}
+
+// ═══════════════════════════════════════════
+// POLES REGISTRY TABLE
+// ═══════════════════════════════════════════
+function renderPoles(){
+  if(!db) return;
+  const chipsEl=document.getElementById("poleChips");
+  chipsEl.innerHTML = `<div class="chip ${poleFilt==='all'?'act':''}" onclick="pfilt('all',this)">ทุกขนาด</div>`+
+    SZ.map(z=>`<div class="chip ${poleFilt===z?'act':''}" onclick="pfilt('${z}',this)">${z} ม.</div>`).join("");
+  const q=(document.getElementById("poleSearch")?.value||"").toLowerCase();
+  let d=Object.entries(db.poleReg);
+  if(poleFilt!=="all") d=d.filter(([,v])=>v.size===poleFilt);
+  if(q) d=d.filter(([k])=>k.toLowerCase().includes(q));
+  document.getElementById("poleCount").textContent=d.length+" ต้น";
+  document.getElementById("poleCnt2").textContent=d.length+" ต้น";
+  const b=document.getElementById("polesBody");
+  if(!d.length){ b.innerHTML='<tr class="er"><td colspan="11">ไม่พบหมายเลขเสา</td></tr>'; return; }
+  b.innerHTML = d.map(([pn,v])=>`<tr style="cursor:pointer;" onclick="showPH('${pn.replace(/'/g,"\\\\'")}')">
+    <td class="mono fw6 tbl">${esc(pn)}</td>
+    <td class="mono">${v.size} ม.</td>
+    <td class="mono ttd" style="font-size:10px;">${db.poleCodes[v.size]||"—"}</td>
+    <td class="mono" style="font-size:10.5px;">${v.dateIn}</td>
+    <td class="mono ttd" style="font-size:10.5px;">${v.timeIn||"—"}</td>
+    <td>${v.status==="คงคลัง"?badge("s"):badge("i")}</td>
+    <td class="mono ttd" style="font-size:10.5px;">${v.dateOut||"—"}</td>
+    <td class="mono ttd" style="font-size:10.5px;">${v.timeOut||"—"}</td>
+    <td>${v.contractor||"—"}</td>
+    <td style="font-size:11px;">${v.project||"—"}</td>
+    <td class="mono ttd" style="font-size:10px;">${v.wbs||"—"}</td>
+  </tr>`).join("");
+}
+function pfilt(f,el){
+  poleFilt=f;
+  document.querySelectorAll("#poleChips .chip").forEach(c=>c.classList.remove("act"));
+  if(el) el.classList.add("act");
+  renderPoles();
+}
+
+// ═══════════════════════════════════════════
+// AUDIT LOG
+// ═══════════════════════════════════════════
+function renderAudit(){
+  if(!db) return;
+  document.getElementById("auditCount").textContent = "บันทึกทุกการเปลี่ยนแปลง — "+db.auditLog.length+" รายการ";
+  const b=document.getElementById("auditBody");
+  if(!db.auditLog.length){ b.innerHTML='<div style="padding:36px;text-align:center;color:var(--tx3);">ยังไม่มีรายการ</div>'; return; }
+  b.innerHTML = db.auditLog.map(e=>`<div class="au-row"><div class="au-time">${e.date}<br>${e.time}</div><div style="flex:1;"><span class="fw6">${esc(e.action)}</span><br><span style="font-size:10.5px;color:var(--tx3);">บันทึกโดย: ${esc(e.user||"—")}</span></div></div>`).join("");
+}
+
+// ═══════════════════════════════════════════
+// REPORT
+// ═══════════════════════════════════════════
+function renderReport(){
+  if(!db) return;
+  const ps=poleStock(), as=ancStock();
+  document.getElementById("reportContent").innerHTML = `
+    <div class="rc"><div class="rch">สรุปสต็อกเสาไฟฟ้า</div><div class="rcb">
+      <div class="tw"><div class="tsc"><table><thead><tr><th>ขนาด</th><th>รหัสพัสดุ</th><th>รับเข้ารวม</th><th>จ่ายออกรวม</th><th>N คงเหลือ</th><th>R คงเหลือ</th><th>รวม</th></tr></thead>
+      <tbody>${SZ.map(z=>{const n=ps[z].N,r=ps[z].R,ti=db.transactions.filter(t=>t.cat==='pole'&&t.size===z&&t.type==='in').reduce((s,t)=>s+t.qty,0),to=db.transactions.filter(t=>t.cat==='pole'&&t.size===z&&t.type==='out').reduce((s,t)=>s+t.qty,0);return`<tr><td class="mono fw6">${z} ม.</td><td class="mono ttd" style="font-size:10px;">${db.poleCodes[z]||'—'}</td><td class="tgn fw6">${ti}</td><td class="trd fw6">${to}</td><td class="tgn">${n}</td><td class="tor">${r}</td><td class="tbl fw7">${n+r}</td></tr>`;}).join("")}</tbody></table></div></div>
+    </div></div>
+    <div class="rc"><div class="rch">ก้อนสมอ</div><div class="rcb">
+      <div class="tw"><div class="tsc"><table><thead><tr><th>รายการ</th><th>รหัสพัสดุ</th><th>รับเข้า</th><th>จ่ายออก</th><th>คงเหลือ</th></tr></thead>
+      <tbody><tr><td>${db.anchor.name}</td><td class="mono ttd" style="font-size:10px;">${db.anchor.code}</td><td class="tgn fw6">${db.transactions.filter(t=>t.cat==='anchor'&&t.type==='in').reduce((s,t)=>s+t.qty,0)}</td><td class="trd fw6">${db.transactions.filter(t=>t.cat==='anchor'&&t.type==='out').reduce((s,t)=>s+t.qty,0)}</td><td class="tte fw7">${as}</td></tr></tbody></table></div></div>
+    </div></div>`;
+}
+
+// ═══════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════
+function renderSettings(){
+  if(!db) return;
+  document.getElementById("poleCodesUI").innerHTML = SZ.map(z=>`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <span class="mono fw6" style="width:68px;color:var(--tx2);">${z} ม.</span>
+      <input class="fi fmono" style="max-width:145px;" maxlength="10" id="pc-${z.replace('.','_')}" value="${esc(db.poleCodes[z]||'')}">
+    </div>`).join("") + `<button class="btn btn-p btn-sm mt1" onclick="savePCodes()">บันทึก</button>`;
+
+  document.getElementById("ancUI").innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+      <div class="fp"><label class="fl">ชื่อ</label><input class="fi" style="max-width:170px;" id="ancName" value="${esc(db.anchor.name)}"></div>
+      <div class="fp"><label class="fl">รหัสพัสดุ</label><input class="fi fmono" style="max-width:130px;" maxlength="10" id="ancCode" value="${esc(db.anchor.code)}"></div>
+    </div>
+    <button class="btn btn-te btn-sm" onclick="saveAnc()">บันทึก</button>`;
+
+  document.getElementById("contrUI").innerHTML = db.contractors.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">
+      <span style="flex:1;font-size:13px;">${esc(c)}</span>
+      <button class="btn btn-rd btn-xs" onclick="rmContr(${i})">ลบ</button>
+    </div>`).join("") + `
+    <div style="display:flex;gap:7px;margin-top:9px;">
+      <input class="fi" style="max-width:220px;" id="newContr" placeholder="ชื่อผู้รับจ้าง...">
+      <button class="btn btn-gn btn-sm" onclick="addContr()">+ เพิ่ม</button>
+    </div>`;
+}
+function savePCodes(){
+  SZ.forEach(z=>{ const v=document.getElementById("pc-"+z.replace(".","_"))?.value.trim(); if(v) db.poleCodes[z]=v; });
+  persist(); renderAll(); toast("บันทึกรหัสพัสดุสำเร็จ","ok");
+}
+function saveAnc(){
+  db.anchor.name = document.getElementById("ancName").value.trim() || db.anchor.name;
+  db.anchor.code = document.getElementById("ancCode").value.trim() || db.anchor.code;
+  persist(); renderAll(); toast("บันทึกข้อมูลก้อนสมอสำเร็จ","ok");
+}
+function addContr(){
+  const v=document.getElementById("newContr").value.trim(); if(!v) return;
+  db.contractors.push(v); persist(); renderSettings(); updateContrDL(); toast("เพิ่มผู้รับจ้างแล้ว","ok");
+}
+function rmContr(i){
+  db.contractors.splice(i,1); persist(); renderSettings(); updateContrDL();
+}
+
+// ═══════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════
+function exportCSV(){
+  const h=["ID","หมวด","ประเภท","วันที่","เวลา","สินค้า","รหัส","แบท","จำนวน","หมายเลขเสา","ผู้รับจ้าง","ชื่องาน","WBS/PM","บันทึกโดย","หมายเหตุ"];
+  const rows=db.transactions.map(t=>[t.id,t.cat==="pole"?"เสาไฟฟ้า":"ก้อนสมอ",t.type==="in"?"รับเข้า":"จ่ายออก",t.date,t.time,t.cat==="pole"?t.size+" ม.":db.anchor.name,t.cat==="pole"?(db.poleCodes[t.size]||""):db.anchor.code,t.cat==="pole"?t.bat:"—",t.qty,(t.poleNumbers||[]).join(" | "),t.contractor||"",t.project||"",t.wbs||"",t.user||"",t.note||""]);
+  const csv=[h,...rows].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\\n");
+  const blob=new Blob(["\\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="PEA_"+new Date().toISOString().slice(0,10)+".csv"; a.click(); URL.revokeObjectURL(url);
+  toast("ดาวน์โหลด CSV สำเร็จ","ok");
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="PEA_backup_"+new Date().toISOString().slice(0,10)+".json"; a.click(); URL.revokeObjectURL(url);
+  toast("ส่งออก Backup JSON สำเร็จ","ok");
+}
+function importJSON(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=(ev)=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!data.transactions || !data.poleReg) throw new Error("invalid");
+      if(!confirm("นำเข้าข้อมูลจากไฟล์? จะเขียนทับข้อมูลปัจจุบันบนคลาวด์")) return;
+      db=data; persist(); renderAll(); toast("นำเข้า JSON สำเร็จ","ok");
+    }catch(err){ toast("ไฟล์ไม่ถูกต้อง","er"); }
+  };
+  reader.readAsText(file);
+}
+
+// ═══════════════════════════════════════════
+// PWA — ลงทะเบียน Service Worker
+// ═══════════════════════════════════════════
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(()=>{ /* เงียบไว้ ถ้าลงทะเบียนไม่ได้ก็ยังใช้งานปกติ */ });
+  });
+}
+</script>
+</body>
+</html>
